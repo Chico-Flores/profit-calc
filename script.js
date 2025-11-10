@@ -27,7 +27,7 @@ const rsaCount = document.getElementById('rsaCount');
 
 // Revenue Inputs
 const totalMonthlySales = document.getElementById('totalMonthlySales');
-const agentAverageSalesInput = document.getElementById('agentAverageSales');
+const agentAverageSalesInput = document.getElementById('agentAverageSalesInput');
 const modeTotalSales = document.getElementById('modeTotalSales');
 const modeAgentAverage = document.getElementById('modeAgentAverage');
 const totalSalesInputDiv = document.getElementById('totalSalesInput');
@@ -140,10 +140,11 @@ function calculateCommission(totalSales, totalAgents) {
 function getTotalMonthlySales() {
     const agents = calculateTotalAgents();
     
-    if (modeAgentAverage.checked) {
+    if (modeAgentAverage && modeAgentAverage.checked) {
         // Calculate from agent average
         const agentAvg = getNumericValue(agentAverageSalesInput);
-        return agentAvg * agents;
+        const totalSales = agentAvg * agents;
+        return totalSales;
     } else {
         // Use direct input
         return getNumericValue(totalMonthlySales);
@@ -319,6 +320,20 @@ modeAgentAverage.addEventListener('change', handleRevenueModeChange);
             performCalculations();
         }
     });
+});
+
+// Recalculate when agent average input changes
+agentAverageSalesInput.addEventListener('input', () => {
+    if (modeAgentAverage.checked) {
+        performCalculations();
+    }
+});
+
+// Recalculate when total monthly sales input changes
+totalMonthlySales.addEventListener('input', () => {
+    if (modeTotalSales.checked) {
+        performCalculations();
+    }
 });
 
 // Initialize with default calculations
