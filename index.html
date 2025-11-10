@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Profit Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Business Profit Calculator</h1>
+            <p class="subtitle">Calculate expenses, break-even point, and profit margins</p>
+        </header>
+
+        <main>
+            <!-- Static Expenses Section -->
+            <section class="card">
+                <h2>Static Expenses (Monthly)</h2>
+                <p class="section-description">Fixed expenses that remain constant each month</p>
+                <div class="expense-grid">
+                    <div class="expense-item">
+                        <label for="clickToDial">CLICK TO DIAL - Local Presence</label>
+                        <input type="number" id="clickToDial" value="200" min="0" step="0.01" placeholder="200">
+                    </div>
+                    <div class="expense-item">
+                        <label for="aceDialer">ACE Predictive Dialer</label>
+                        <input type="number" id="aceDialer" value="1200" min="0" step="0.01" placeholder="1200">
+                    </div>
+                    <div class="expense-item">
+                        <label for="cadCallReport">CAD Call Report</label>
+                        <input type="number" id="cadCallReport" value="140" min="0" step="0.01" placeholder="140">
+                    </div>
+                    <div class="expense-item">
+                        <label for="incallRecordings">Incall Recordings</label>
+                        <input type="number" id="incallRecordings" value="70" min="0" step="0.01" placeholder="70">
+                    </div>
+                    <div class="expense-item">
+                        <label for="broadcastCalls">BROADCAST Calls</label>
+                        <input type="number" id="broadcastCalls" value="1600" min="0" step="0.01" placeholder="1600">
+                    </div>
+                    <div class="expense-item">
+                        <label for="simplicityCrm">SIMPLICITY CRM</label>
+                        <input type="number" id="simplicityCrm" value="2000" min="0" step="0.01" placeholder="2000">
+                    </div>
+                    <div class="expense-item">
+                        <label for="idiBatching">IDI Batching</label>
+                        <input type="number" id="idiBatching" value="5000" min="0" step="0.01" placeholder="5000">
+                    </div>
+                    <div class="expense-item">
+                        <label for="adminPayroll">Admin Payroll</label>
+                        <input type="number" id="adminPayroll" value="12000" min="0" step="0.01" placeholder="12000">
+                    </div>
+                    <div class="expense-item">
+                        <label for="rsaManagement">RSA Management</label>
+                        <input type="number" id="rsaManagement" value="1500" min="0" step="0.01" placeholder="1500">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Variable Expenses Section -->
+            <section class="card">
+                <h2>Variable Expenses (Per Agent)</h2>
+                <p class="section-description">Expenses that vary based on the number of agents</p>
+                
+                <div class="variable-expense-group">
+                    <h3>Phone Services</h3>
+                    <div class="expense-grid">
+                        <div class="expense-item">
+                            <label for="localLineCost">LOCAL Line (per agent)</label>
+                            <input type="number" id="localLineCost" value="60" min="0" step="0.01" placeholder="60">
+                        </div>
+                        <div class="expense-item">
+                            <label for="localLineCount">Number of Agents Using LOCAL Line</label>
+                            <input type="number" id="localLineCount" value="0" min="0" step="1" placeholder="0">
+                        </div>
+                        <div class="expense-item">
+                            <label for="dialerLinesCost">DIALER Lines (per agent)</label>
+                            <input type="number" id="dialerLinesCost" value="100" min="0" step="0.01" placeholder="100">
+                        </div>
+                        <div class="expense-item">
+                            <label for="dialerLinesCount">Number of Agents Using DIALER Lines</label>
+                            <input type="number" id="dialerLinesCount" value="0" min="0" step="1" placeholder="0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="variable-expense-group">
+                    <h3>Agent Salaries</h3>
+                    <div class="expense-grid">
+                        <div class="expense-item">
+                            <label for="overseasSalary">Overseas Agents (per agent/month)</label>
+                            <input type="number" id="overseasSalary" value="720" min="0" step="0.01" placeholder="720">
+                        </div>
+                        <div class="expense-item">
+                            <label for="overseasCount">Number of Overseas Agents</label>
+                            <input type="number" id="overseasCount" value="0" min="0" step="1" placeholder="0">
+                        </div>
+                        <div class="expense-item">
+                            <label for="tijSalary">TIJ Agents (per agent/month)</label>
+                            <input type="number" id="tijSalary" value="1300" min="0" step="0.01" placeholder="1300">
+                        </div>
+                        <div class="expense-item">
+                            <label for="tijCount">Number of TIJ Agents</label>
+                            <input type="number" id="tijCount" value="0" min="0" step="1" placeholder="0">
+                        </div>
+                        <div class="expense-item">
+                            <label for="rsaSalary">RSA Agents (per agent/month)</label>
+                            <input type="number" id="rsaSalary" value="1100" min="0" step="0.01" placeholder="1100">
+                        </div>
+                        <div class="expense-item">
+                            <label for="rsaCount">Number of RSA Agents</label>
+                            <input type="number" id="rsaCount" value="0" min="0" step="1" placeholder="0">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Revenue Section -->
+            <section class="card">
+                <h2>Revenue</h2>
+                <div class="revenue-section">
+                    <div class="expense-item">
+                        <label for="totalMonthlySales">Total Monthly Sales</label>
+                        <input type="number" id="totalMonthlySales" value="0" min="0" step="0.01" placeholder="0">
+                    </div>
+                    <div class="revenue-deductions">
+                        <h3>Revenue Deductions</h3>
+                        <ul>
+                            <li>CLIENT Remit: <strong>37%</strong></li>
+                            <li>Merchant Reserves: <strong>5%</strong></li>
+                            <li>Merchant Fees: <strong>3%</strong></li>
+                            <li>Net Revenue Rate: <strong>55%</strong></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Calculate Button -->
+            <div class="button-group">
+                <button id="calculateBtn" class="btn btn-primary">Calculate</button>
+                <button id="resetBtn" class="btn btn-secondary">Reset</button>
+            </div>
+
+            <!-- Results Section -->
+            <section class="card results-card">
+                <h2>Results</h2>
+                <div class="results-grid">
+                    <div class="result-item">
+                        <label>Total Static Expenses</label>
+                        <div class="result-value" id="totalStaticExpenses">$0.00</div>
+                    </div>
+                    <div class="result-item">
+                        <label>Total Variable Expenses</label>
+                        <div class="result-value" id="totalVariableExpenses">$0.00</div>
+                    </div>
+                    <div class="result-item">
+                        <label>Total Agents</label>
+                        <div class="result-value" id="totalAgents">0</div>
+                    </div>
+                    <div class="result-item">
+                        <label>Agent Average Sales</label>
+                        <div class="result-value" id="agentAverageSales">$0.00</div>
+                    </div>
+                    <div class="result-item">
+                        <label>Commission (15% on sales over $4,000/agent)</label>
+                        <div class="result-value" id="commission">$0.00</div>
+                    </div>
+                    <div class="result-item">
+                        <label>Total Expenses</label>
+                        <div class="result-value" id="totalExpenses">$0.00</div>
+                    </div>
+                    <div class="result-item">
+                        <label>Net Revenue (55% of Total Sales)</label>
+                        <div class="result-value" id="netRevenue">$0.00</div>
+                    </div>
+                    <div class="result-item highlight">
+                        <label>Break-Even Sales Amount</label>
+                        <div class="result-value highlight" id="breakEvenSales">$0.00</div>
+                    </div>
+                    <div class="result-item highlight" id="profitItem">
+                        <label>Profit / Loss</label>
+                        <div class="result-value highlight" id="profit">$0.00</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
