@@ -59,17 +59,29 @@ header {
 
 .logo-container {
     margin-bottom: 1.5rem;
+    display: inline-block;
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+    padding: 1.5rem 2.5rem;
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 4px 16px rgba(0, 86, 179, 0.25);
+    transition: all 0.3s ease;
+}
+
+.logo-container:hover {
+    box-shadow: 0 6px 24px rgba(0, 86, 179, 0.35);
+    transform: translateY(-2px);
 }
 
 .logo {
-    max-width: 200px;
+    max-width: 350px;
     height: auto;
-    filter: drop-shadow(0 4px 8px rgba(0, 86, 179, 0.15));
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
     transition: transform 0.3s ease;
+    display: block;
 }
 
-.logo:hover {
-    transform: scale(1.05);
+.logo-container:hover .logo {
+    transform: scale(1.02);
 }
 
 header h1 {
@@ -443,8 +455,12 @@ header h1 {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .logo-container {
+        padding: 1rem 1.5rem;
+    }
+    
     .logo {
-        max-width: 150px;
+        max-width: 260px;
     }
     
     header h1 {
@@ -485,6 +501,14 @@ header h1 {
     
     header {
         padding: 1rem 0;
+    }
+    
+    .logo-container {
+        padding: 0.75rem 1rem;
+    }
+    
+    .logo {
+        max-width: 200px;
     }
     
     header h1 {
