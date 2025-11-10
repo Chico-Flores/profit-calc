@@ -95,6 +95,40 @@ function calculateTotalStaticExpenses() {
 }
 
 /**
+ * Auto-calculate LOCAL and DIALER Lines based on agent counts
+ */
+function autoCalculatePhoneLines() {
+    const tijCount = getIntegerValue(document.getElementById('tijCount'));
+    const rsaCount = getIntegerValue(document.getElementById('rsaCount'));
+    const overseasCount = getIntegerValue(document.getElementById('overseasCount'));
+    const adminCount = 4; // Always 4 admin members
+    
+    // LOCAL Lines: TIJ + RSA + Admin (4)
+    const calculatedLocalLines = tijCount + rsaCount + adminCount;
+    
+    // DIALER Lines: TIJ + RSA + Overseas + Admin (4)
+    const calculatedDialerLines = tijCount + rsaCount + overseasCount + adminCount;
+    
+    // Only auto-update if the fields are empty or match the previous calculated value
+    // This allows manual override while still auto-calculating when agent counts change
+    const currentLocalLines = getIntegerValue(localLineCount);
+    const currentDialerLines = getIntegerValue(dialerLinesCount);
+    
+    // Store the last calculated values to detect if user has manually changed them
+    if (!localLineCount.dataset.lastCalculated || 
+        currentLocalLines === parseInt(localLineCount.dataset.lastCalculated)) {
+        localLineCount.value = calculatedLocalLines;
+        localLineCount.dataset.lastCalculated = calculatedLocalLines;
+    }
+    
+    if (!dialerLinesCount.dataset.lastCalculated || 
+        currentDialerLines === parseInt(dialerLinesCount.dataset.lastCalculated)) {
+        dialerLinesCount.value = calculatedDialerLines;
+        dialerLinesCount.dataset.lastCalculated = calculatedDialerLines;
+    }
+}
+
+/**
  * Calculate total variable expenses
  */
 function calculateTotalVariableExpenses() {
@@ -241,15 +275,16 @@ function resetForm() {
     
     // Reset variable expenses
     localLineCost.value = 60;
-    localLineCount.value = 0;
     dialerLinesCost.value = 100;
-    dialerLinesCount.value = 0;
     overseasSalary.value = 720;
     overseasCount.value = 0;
     tijSalary.value = 1300;
     tijCount.value = 0;
     rsaSalary.value = 1100;
     rsaCount.value = 0;
+    
+    // Auto-calculate phone lines after reset
+    autoCalculatePhoneLines();
     
     // Reset revenue
     modeTotalSales.checked = true;
@@ -313,13 +348,23 @@ resetBtn.addEventListener('click', resetForm);
 modeTotalSales.addEventListener('change', handleRevenueModeChange);
 modeAgentAverage.addEventListener('change', handleRevenueModeChange);
 
-// Recalculate when agent counts change (for agent average mode)
+// Auto-calculate phone lines when agent counts change
 [overseasCount, tijCount, rsaCount].forEach(input => {
     input.addEventListener('input', () => {
+        autoCalculatePhoneLines();
         if (modeAgentAverage.checked) {
             performCalculations();
         }
     });
+});
+
+// Track manual changes to phone line counts
+localLineCount.addEventListener('input', () => {
+    localLineCount.dataset.lastCalculated = localLineCount.value;
+});
+
+dialerLinesCount.addEventListener('input', () => {
+    dialerLinesCount.dataset.lastCalculated = dialerLinesCount.value;
 });
 
 // Recalculate when agent average input changes
@@ -338,6 +383,7 @@ totalMonthlySales.addEventListener('input', () => {
 
 // Initialize with default calculations
 window.addEventListener('DOMContentLoaded', () => {
+    autoCalculatePhoneLines();
     handleRevenueModeChange();
 });
 
