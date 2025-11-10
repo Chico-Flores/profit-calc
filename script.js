@@ -41,6 +41,7 @@ const agentAverageSalesDisplay = document.getElementById('agentAverageSales');
 const calculatedTotalSales = document.getElementById('calculatedTotalSales');
 const commission = document.getElementById('commission');
 const totalExpenses = document.getElementById('totalExpenses');
+const totalRemitAmount = document.getElementById('totalRemitAmount');
 const netRevenue = document.getElementById('netRevenue');
 const breakEvenSales = document.getElementById('breakEvenSales');
 const profit = document.getElementById('profit');
@@ -49,6 +50,7 @@ const profitItem = document.getElementById('profitItem');
 // Constants
 const COMMISSION_THRESHOLD = 4000;
 const COMMISSION_RATE = 0.10;
+const CLIENT_REMIT_RATE = 0.37; // 37% CLIENT Remit
 const NET_REVENUE_RATE = 0.55; // 55% after deductions (100% - 37% - 5% - 3%)
 
 /**
@@ -203,6 +205,9 @@ function performCalculations() {
     // Calculate total expenses
     const expenses = staticExpenses + variableExpenses + commissionAmount;
     
+    // Calculate remit amount (37% of sales)
+    const remitAmount = sales * CLIENT_REMIT_RATE;
+    
     // Calculate net revenue
     const netRev = sales * NET_REVENUE_RATE;
     
@@ -228,6 +233,7 @@ function performCalculations() {
     
     commission.textContent = formatCurrency(commissionAmount);
     totalExpenses.textContent = formatCurrency(expenses);
+    totalRemitAmount.textContent = formatCurrency(remitAmount);
     netRevenue.textContent = formatCurrency(netRev);
     breakEvenSales.textContent = formatCurrency(breakEven);
     profit.textContent = formatCurrency(profitAmount);
