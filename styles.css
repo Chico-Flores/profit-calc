@@ -6,29 +6,43 @@
 }
 
 :root {
-    --primary-color: #2563eb;
-    --primary-hover: #1d4ed8;
-    --secondary-color: #6b7280;
-    --secondary-hover: #4b5563;
+    /* Brand Colors - Blue & Yellow */
+    --primary-blue: #0056b3;
+    --primary-blue-dark: #004085;
+    --primary-blue-light: #0066cc;
+    --accent-yellow: #ffcc00;
+    --accent-yellow-dark: #e6b800;
+    --accent-yellow-light: #ffd633;
+    
+    /* UI Colors */
+    --primary-color: var(--primary-blue);
+    --primary-hover: var(--primary-blue-dark);
+    --secondary-color: var(--accent-yellow);
+    --secondary-hover: var(--accent-yellow-dark);
     --success-color: #10b981;
     --danger-color: #ef4444;
-    --background: #f9fafb;
+    --background: #f5f7fa;
     --card-background: #ffffff;
-    --text-primary: #111827;
+    --text-primary: #1a1a1a;
     --text-secondary: #6b7280;
-    --border-color: #e5e7eb;
-    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --border-radius: 8px;
+    --border-color: #e0e7ff;
+    --shadow: 0 2px 8px 0 rgba(0, 86, 179, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 25px -5px rgba(0, 86, 179, 0.15), 0 4px 10px -2px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 12px 30px -8px rgba(0, 86, 179, 0.2);
+    --border-radius: 16px;
+    --border-radius-sm: 12px;
+    --border-radius-lg: 20px;
     --spacing-unit: 1rem;
 }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background-color: var(--background);
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8f0f8 100%);
+    background-attachment: fixed;
     color: var(--text-primary);
     line-height: 1.6;
     padding: var(--spacing-unit);
+    min-height: 100vh;
 }
 
 .container {
@@ -39,36 +53,91 @@ body {
 /* Header */
 header {
     text-align: center;
-    margin-bottom: 2rem;
-    padding: 2rem 0;
+    margin-bottom: 3rem;
+    padding: 2.5rem 0;
+}
+
+.logo-container {
+    margin-bottom: 1.5rem;
+}
+
+.logo {
+    max-width: 200px;
+    height: auto;
+    filter: drop-shadow(0 4px 8px rgba(0, 86, 179, 0.15));
+    transition: transform 0.3s ease;
+}
+
+.logo:hover {
+    transform: scale(1.05);
 }
 
 header h1 {
-    font-size: 2.5rem;
+    font-size: 2.75rem;
     font-weight: 700;
-    color: var(--text-primary);
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin-bottom: 0.5rem;
+    letter-spacing: -0.5px;
 }
 
 .subtitle {
     font-size: 1.125rem;
     color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.icon {
+    display: inline-block;
+    margin-right: 0.75rem;
+    font-size: 1.5rem;
+    vertical-align: middle;
+}
+
+.icon-small {
+    display: inline-block;
+    margin-right: 0.5rem;
+    font-size: 1.125rem;
+    vertical-align: middle;
 }
 
 /* Card Layout */
 .card {
     background: var(--card-background);
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow);
-    padding: 2rem;
+    padding: 2.5rem;
     margin-bottom: 2rem;
+    border: 1px solid rgba(0, 86, 179, 0.08);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-blue) 0%, var(--accent-yellow) 100%);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-2px);
 }
 
 .card h2 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
     color: var(--text-primary);
+    display: flex;
+    align-items: center;
 }
 
 .section-description {
@@ -97,18 +166,24 @@ header h1 {
 }
 
 .expense-item input {
-    padding: 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
     font-size: 1rem;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: all 0.3s ease;
     background-color: var(--card-background);
+    font-weight: 500;
 }
 
 .expense-item input:focus {
     outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 4px rgba(0, 86, 179, 0.1);
+    transform: translateY(-1px);
+}
+
+.expense-item input:hover {
+    border-color: var(--primary-blue-light);
 }
 
 .expense-item input::placeholder {
@@ -126,12 +201,14 @@ header h1 {
 }
 
 .variable-expense-group h3 {
-    font-size: 1.25rem;
+    font-size: 1.375rem;
     font-weight: 600;
-    margin-bottom: 1rem;
-    color: var(--text-primary);
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 1.5rem;
+    color: var(--primary-blue);
+    padding-bottom: 0.75rem;
+    border-bottom: 3px solid var(--accent-yellow);
+    display: flex;
+    align-items: center;
 }
 
 /* Revenue Section */
@@ -142,10 +219,10 @@ header h1 {
 }
 
 .revenue-input-mode {
-    background: var(--background);
-    padding: 1.5rem;
+    background: linear-gradient(135deg, rgba(0, 86, 179, 0.05) 0%, rgba(255, 204, 0, 0.05) 100%);
+    padding: 1.75rem;
     border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
 }
 
 .revenue-input-mode h3 {
@@ -192,10 +269,10 @@ header h1 {
 }
 
 .revenue-deductions {
-    background: var(--background);
-    padding: 1.5rem;
+    background: linear-gradient(135deg, rgba(0, 86, 179, 0.05) 0%, rgba(255, 204, 0, 0.05) 100%);
+    padding: 1.75rem;
     border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
 }
 
 .revenue-deductions h3 {
@@ -241,25 +318,28 @@ header h1 {
 }
 
 .btn-primary {
-    background-color: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
     color: white;
+    box-shadow: 0 4px 12px rgba(0, 86, 179, 0.3);
 }
 
 .btn-primary:hover {
-    background-color: var(--primary-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-lg);
+    background: linear-gradient(135deg, var(--primary-blue-dark) 0%, var(--primary-blue) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 86, 179, 0.4);
 }
 
 .btn-secondary {
-    background-color: var(--secondary-color);
-    color: white;
+    background: linear-gradient(135deg, var(--accent-yellow) 0%, var(--accent-yellow-light) 100%);
+    color: var(--text-primary);
+    box-shadow: 0 4px 12px rgba(255, 204, 0, 0.3);
+    font-weight: 700;
 }
 
 .btn-secondary:hover {
-    background-color: var(--secondary-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-lg);
+    background: linear-gradient(135deg, var(--accent-yellow-dark) 0%, var(--accent-yellow) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 204, 0, 0.4);
 }
 
 .btn:active {
@@ -268,12 +348,37 @@ header h1 {
 
 /* Results Section */
 .results-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 50%, var(--accent-yellow) 100%);
     color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.results-card::before {
+    background: transparent;
+}
+
+.results-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    animation: pulse 4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.6; }
 }
 
 .results-card h2 {
     color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 1;
 }
 
 .results-grid {
@@ -284,16 +389,26 @@ header h1 {
 }
 
 .result-item {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 1.25rem;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 1.5rem;
     border-radius: var(--border-radius);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.result-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .result-item.highlight {
-    background: rgba(255, 255, 255, 0.2);
-    border: 2px solid rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.25);
+    border: 3px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .result-item label {
@@ -317,23 +432,28 @@ header h1 {
 }
 
 .result-item.profit {
-    background: rgba(16, 185, 129, 0.3);
-    border-color: rgba(16, 185, 129, 0.5);
+    background: rgba(16, 185, 129, 0.4);
+    border-color: rgba(16, 185, 129, 0.6);
 }
 
 .result-item.loss {
-    background: rgba(239, 68, 68, 0.3);
-    border-color: rgba(239, 68, 68, 0.5);
+    background: rgba(239, 68, 68, 0.4);
+    border-color: rgba(239, 68, 68, 0.6);
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .logo {
+        max-width: 150px;
+    }
+    
     header h1 {
         font-size: 2rem;
     }
     
     .card {
         padding: 1.5rem;
+        border-radius: var(--border-radius);
     }
     
     .expense-grid {
@@ -350,6 +470,11 @@ header h1 {
     
     .btn {
         width: 100%;
+    }
+    
+    .radio-group {
+        flex-direction: column;
+        gap: 1rem;
     }
 }
 
@@ -394,5 +519,26 @@ header h1 {
     .button-group {
         display: none;
     }
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 2rem 0;
+    margin-top: 3rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+footer p {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--accent-yellow) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
