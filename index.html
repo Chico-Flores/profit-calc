@@ -9,6 +9,9 @@
 <body>
     <div class="container">
         <header>
+            <div class="logo-container">
+                <img src="https://storage.googleapis.com/msgsndr/7AsSgaSl1IdPndNHqKfs/media/68e6dc19c4bd9e7a6d37de2b.png" alt="PHG Logo" class="logo">
+            </div>
             <h1>Business Profit Calculator</h1>
             <p class="subtitle">Calculate expenses, break-even point, and profit margins</p>
         </header>
@@ -16,7 +19,7 @@
         <main>
             <!-- Static Expenses Section -->
             <section class="card">
-                <h2>Static Expenses (Monthly)</h2>
+                <h2><span class="icon">💰</span> Static Expenses (Monthly)</h2>
                 <p class="section-description">Fixed expenses that remain constant each month</p>
                 <div class="expense-grid">
                     <div class="expense-item">
@@ -60,11 +63,11 @@
 
             <!-- Variable Expenses Section -->
             <section class="card">
-                <h2>Variable Expenses (Per Agent)</h2>
+                <h2><span class="icon">📊</span> Variable Expenses (Per Agent)</h2>
                 <p class="section-description">Expenses that vary based on the number of agents</p>
                 
                 <div class="variable-expense-group">
-                    <h3>Phone Services</h3>
+                    <h3><span class="icon-small">📞</span> Phone Services</h3>
                     <div class="expense-grid">
                         <div class="expense-item">
                             <label for="localLineCost">LOCAL Line (per agent)</label>
@@ -86,7 +89,7 @@
                 </div>
 
                 <div class="variable-expense-group">
-                    <h3>Agent Salaries</h3>
+                    <h3><span class="icon-small">👥</span> Agent Salaries</h3>
                     <div class="expense-grid">
                         <div class="expense-item">
                             <label for="overseasSalary">Overseas Agents (per agent/month)</label>
@@ -118,7 +121,7 @@
 
             <!-- Revenue Section -->
             <section class="card">
-                <h2>Revenue</h2>
+                <h2><span class="icon">💵</span> Revenue</h2>
                 <div class="revenue-section">
                     <div class="revenue-input-mode">
                         <h3>Input Method</h3>
@@ -164,7 +167,7 @@
 
             <!-- Results Section -->
             <section class="card results-card">
-                <h2>Results</h2>
+                <h2><span class="icon">📈</span> Results</h2>
                 <div class="results-grid">
                     <div class="result-item">
                         <label>Total Static Expenses</label>
@@ -209,6 +212,10 @@
                 </div>
             </section>
         </main>
+        
+        <footer>
+            <p>Powered by PHG ⚡</p>
+        </footer>
     </div>
 
     <script src="script.js"></script>
