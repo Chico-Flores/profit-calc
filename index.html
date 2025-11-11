@@ -141,10 +141,18 @@
                             <label for="totalMonthlySales">Total Monthly Sales</label>
                             <input type="number" id="totalMonthlySales" value="0" min="0" step="0.01" placeholder="0">
                         </div>
-                        <div class="expense-item" id="agentAverageInput" style="display: none;">
-                            <label for="agentAverageSalesInput">Agent Average Sales</label>
-                            <input type="number" id="agentAverageSalesInput" value="0" min="0" step="0.01" placeholder="0">
-                            <small class="input-help">Total Monthly Sales will be calculated as: Agent Average × Total Agents</small>
+                        <div id="agentAverageInput" style="display: none;">
+                            <div class="expense-grid" style="grid-template-columns: repeat(2, 1fr);">
+                                <div class="expense-item">
+                                    <label for="dialerAverageInput">Dialer Average Sales (Overseas Agents)</label>
+                                    <input type="number" id="dialerAverageInput" value="0" min="0" step="0.01" placeholder="0">
+                                </div>
+                                <div class="expense-item">
+                                    <label for="closerAverageInput">Closer Average Sales (TIJ & RSA Agents)</label>
+                                    <input type="number" id="closerAverageInput" value="0" min="0" step="0.01" placeholder="0">
+                                </div>
+                            </div>
+                            <small class="input-help">Total Monthly Sales = (Dialer Average × Overseas Agents) + (Closer Average × (TIJ + RSA Agents))</small>
                         </div>
                     </div>
                     <div class="revenue-deductions">
@@ -182,11 +190,15 @@
                         <div class="result-value" id="totalAgents">0</div>
                     </div>
                     <div class="result-item">
-                        <label>Agent Average Sales</label>
-                        <div class="result-value" id="agentAverageSales">$0.00</div>
+                        <label>Dialer Average Sales (Overseas)</label>
+                        <div class="result-value" id="dialerAverageSales">$0.00</div>
                     </div>
                     <div class="result-item">
-                        <label>Commission (10% on sales over $4,000/agent)</label>
+                        <label>Closer Average Sales (TIJ & RSA)</label>
+                        <div class="result-value" id="closerAverageSales">$0.00</div>
+                    </div>
+                    <div class="result-item">
+                        <label>Commission (Dialers: 5% above $2,000 | Closers: 10% above $4,000)</label>
                         <div class="result-value" id="commission">$0.00</div>
                     </div>
                     <div class="result-item">
