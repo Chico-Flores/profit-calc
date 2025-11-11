@@ -27,7 +27,8 @@ const rsaCount = document.getElementById('rsaCount');
 
 // Revenue Inputs
 const totalMonthlySales = document.getElementById('totalMonthlySales');
-const agentAverageSalesInput = document.getElementById('agentAverageSalesInput');
+const dialerAverageInput = document.getElementById('dialerAverageInput');
+const closerAverageInput = document.getElementById('closerAverageInput');
 const modeTotalSales = document.getElementById('modeTotalSales');
 const modeAgentAverage = document.getElementById('modeAgentAverage');
 const totalSalesInputDiv = document.getElementById('totalSalesInput');
@@ -37,7 +38,8 @@ const agentAverageInputDiv = document.getElementById('agentAverageInput');
 const totalStaticExpenses = document.getElementById('totalStaticExpenses');
 const totalVariableExpenses = document.getElementById('totalVariableExpenses');
 const totalAgents = document.getElementById('totalAgents');
-const agentAverageSalesDisplay = document.getElementById('agentAverageSales');
+const dialerAverageSalesDisplay = document.getElementById('dialerAverageSales');
+const closerAverageSalesDisplay = document.getElementById('closerAverageSales');
 const calculatedTotalSales = document.getElementById('calculatedTotalSales');
 const commission = document.getElementById('commission');
 const totalExpenses = document.getElementById('totalExpenses');
@@ -48,8 +50,10 @@ const profit = document.getElementById('profit');
 const profitItem = document.getElementById('profitItem');
 
 // Constants
-const COMMISSION_THRESHOLD = 4000;
-const COMMISSION_RATE = 0.10;
+const DIALER_COMMISSION_THRESHOLD = 2000;
+const DIALER_COMMISSION_RATE = 0.05; // 5% for dialers
+const CLOSER_COMMISSION_THRESHOLD = 4000;
+const CLOSER_COMMISSION_RATE = 0.10; // 10% for closers
 const CLIENT_REMIT_RATE = 0.37; // 37% CLIENT Remit
 const NET_REVENUE_RATE = 0.55; // 55% after deductions (100% - 37% - 5% - 3%)
 
@@ -153,34 +157,80 @@ function calculateTotalAgents() {
 }
 
 /**
- * Calculate commission based on agent average sales
+ * Calculate dialer commission (5% on sales above $2,000 per agent)
  */
-function calculateCommission(totalSales, totalAgents) {
-    if (totalAgents === 0) {
+function calculateDialerCommission(dialerAverage, overseasCount) {
+    if (overseasCount === 0 || dialerAverage <= DIALER_COMMISSION_THRESHOLD) {
         return 0;
     }
     
-    const agentAverage = totalSales / totalAgents;
-    
-    if (agentAverage > COMMISSION_THRESHOLD) {
-        const excessAmount = agentAverage - COMMISSION_THRESHOLD;
-        return excessAmount * COMMISSION_RATE * totalAgents;
+    const excessAmount = dialerAverage - DIALER_COMMISSION_THRESHOLD;
+    return excessAmount * DIALER_COMMISSION_RATE * overseasCount;
+}
+
+/**
+ * Calculate closer commission (10% on sales above $4,000 per agent)
+ */
+function calculateCloserCommission(closerAverage, closerCount) {
+    if (closerCount === 0 || closerAverage <= CLOSER_COMMISSION_THRESHOLD) {
+        return 0;
     }
     
-    return 0;
+    const excessAmount = closerAverage - CLOSER_COMMISSION_THRESHOLD;
+    return excessAmount * CLOSER_COMMISSION_RATE * closerCount;
+}
+
+/**
+ * Calculate total commission based on dialer and closer averages
+ */
+function calculateCommission() {
+    const overseasCount = getIntegerValue(document.getElementById('overseasCount'));
+    const tijCount = getIntegerValue(document.getElementById('tijCount'));
+    const rsaCount = getIntegerValue(document.getElementById('rsaCount'));
+    const closerCount = tijCount + rsaCount;
+    
+    let dialerAverage = 0;
+    let closerAverage = 0;
+    
+    if (modeAgentAverage && modeAgentAverage.checked) {
+        // Get averages from inputs
+        dialerAverage = getNumericValue(dialerAverageInput);
+        closerAverage = getNumericValue(closerAverageInput);
+    } else {
+        // Calculate averages from total sales
+        const totalSales = getNumericValue(totalMonthlySales);
+        const totalAgents = overseasCount + closerCount;
+        
+        if (totalAgents > 0) {
+            // For total sales mode, we need to estimate averages
+            // This is a simplified approach - assumes equal distribution
+            dialerAverage = overseasCount > 0 ? totalSales / totalAgents : 0;
+            closerAverage = closerCount > 0 ? totalSales / totalAgents : 0;
+        }
+    }
+    
+    const dialerCommission = calculateDialerCommission(dialerAverage, overseasCount);
+    const closerCommission = calculateCloserCommission(closerAverage, closerCount);
+    
+    return dialerCommission + closerCommission;
 }
 
 /**
  * Get total monthly sales based on input mode
  */
 function getTotalMonthlySales() {
-    const agents = calculateTotalAgents();
-    
     if (modeAgentAverage && modeAgentAverage.checked) {
-        // Calculate from agent average
-        const agentAvg = getNumericValue(agentAverageSalesInput);
-        const totalSales = agentAvg * agents;
-        return totalSales;
+        // Calculate from separate dialer and closer averages
+        const dialerAvg = getNumericValue(dialerAverageInput);
+        const closerAvg = getNumericValue(closerAverageInput);
+        const overseasCount = getIntegerValue(document.getElementById('overseasCount'));
+        const tijCount = getIntegerValue(document.getElementById('tijCount'));
+        const rsaCount = getIntegerValue(document.getElementById('rsaCount'));
+        const closerCount = tijCount + rsaCount;
+        
+        const dialerSales = dialerAvg * overseasCount;
+        const closerSales = closerAvg * closerCount;
+        return dialerSales + closerSales;
     } else {
         // Use direct input
         return getNumericValue(totalMonthlySales);
@@ -196,11 +246,17 @@ function performCalculations() {
     const variableExpenses = calculateTotalVariableExpenses();
     const agents = calculateTotalAgents();
     
+    // Get agent counts
+    const overseasCount = getIntegerValue(document.getElementById('overseasCount'));
+    const tijCount = getIntegerValue(document.getElementById('tijCount'));
+    const rsaCount = getIntegerValue(document.getElementById('rsaCount'));
+    const closerCount = tijCount + rsaCount;
+    
     // Get total monthly sales based on input mode
     const sales = getTotalMonthlySales();
     
-    // Calculate commission
-    const commissionAmount = calculateCommission(sales, agents);
+    // Calculate commission (uses new split calculation)
+    const commissionAmount = calculateCommission();
     
     // Calculate total expenses
     const expenses = staticExpenses + variableExpenses + commissionAmount;
@@ -217,6 +273,24 @@ function performCalculations() {
     // Calculate profit/loss
     const profitAmount = netRev - expenses;
     
+    // Calculate and display dialer and closer averages
+    let dialerAverage = 0;
+    let closerAverage = 0;
+    
+    if (modeAgentAverage && modeAgentAverage.checked) {
+        // Get from inputs
+        dialerAverage = getNumericValue(dialerAverageInput);
+        closerAverage = getNumericValue(closerAverageInput);
+    } else {
+        // Calculate from total sales (weighted average)
+        if (overseasCount > 0) {
+            dialerAverage = sales / agents;
+        }
+        if (closerCount > 0) {
+            closerAverage = sales / agents;
+        }
+    }
+    
     // Update display
     totalStaticExpenses.textContent = formatCurrency(staticExpenses);
     totalVariableExpenses.textContent = formatCurrency(variableExpenses);
@@ -225,11 +299,9 @@ function performCalculations() {
     // Show calculated total sales (especially important when using agent average mode)
     calculatedTotalSales.textContent = formatCurrency(sales);
     
-    if (agents > 0) {
-        agentAverageSalesDisplay.textContent = formatCurrency(sales / agents);
-    } else {
-        agentAverageSalesDisplay.textContent = formatCurrency(0);
-    }
+    // Display separate dialer and closer averages
+    dialerAverageSalesDisplay.textContent = formatCurrency(dialerAverage);
+    closerAverageSalesDisplay.textContent = formatCurrency(closerAverage);
     
     commission.textContent = formatCurrency(commissionAmount);
     totalExpenses.textContent = formatCurrency(expenses);
@@ -295,7 +367,8 @@ function resetForm() {
     // Reset revenue
     modeTotalSales.checked = true;
     totalMonthlySales.value = 0;
-    agentAverageSalesInput.value = 0;
+    dialerAverageInput.value = 0;
+    closerAverageInput.value = 0;
     handleRevenueModeChange();
 }
 
@@ -307,9 +380,14 @@ function validateInputs() {
     
     // Validate based on input mode
     if (modeAgentAverage.checked) {
-        const agentAvg = getNumericValue(agentAverageSalesInput);
-        if (agentAvg < 0) {
-            alert('Agent Average Sales cannot be negative');
+        const dialerAvg = getNumericValue(dialerAverageInput);
+        const closerAvg = getNumericValue(closerAverageInput);
+        if (dialerAvg < 0) {
+            alert('Dialer Average Sales cannot be negative');
+            return false;
+        }
+        if (closerAvg < 0) {
+            alert('Closer Average Sales cannot be negative');
             return false;
         }
         if (agents === 0) {
@@ -373,8 +451,15 @@ dialerLinesCount.addEventListener('input', () => {
     dialerLinesCount.dataset.lastCalculated = dialerLinesCount.value;
 });
 
-// Recalculate when agent average input changes
-agentAverageSalesInput.addEventListener('input', () => {
+// Recalculate when dialer average input changes
+dialerAverageInput.addEventListener('input', () => {
+    if (modeAgentAverage.checked) {
+        performCalculations();
+    }
+});
+
+// Recalculate when closer average input changes
+closerAverageInput.addEventListener('input', () => {
     if (modeAgentAverage.checked) {
         performCalculations();
     }
