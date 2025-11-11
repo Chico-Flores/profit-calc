@@ -347,7 +347,7 @@ function resetForm() {
     incallRecordings.value = 70;
     broadcastCalls.value = 1600;
     simplicityCrm.value = 2000;
-    idiBatching.value = 5000;
+    idiBatching.value = 6250;
     adminPayroll.value = 12000;
     rsaManagement.value = 1500;
     
