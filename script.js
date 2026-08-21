@@ -1,6 +1,7 @@
 // DOM Element References
 const calculateBtn = document.getElementById('calculateBtn');
 const resetBtn = document.getElementById('resetBtn');
+const resultsCard = document.querySelector('.results-card');
 
 // Static Expense Inputs
 const clickToDial = document.getElementById('clickToDial');
@@ -423,6 +424,7 @@ function validateInputs() {
 calculateBtn.addEventListener('click', () => {
     if (validateInputs()) {
         performCalculations();
+        resultsCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 });
 
