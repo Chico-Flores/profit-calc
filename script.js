@@ -1,480 +1,341 @@
-// DOM Element References
-const calculateBtn = document.getElementById('calculateBtn');
-const resetBtn = document.getElementById('resetBtn');
+// ============================================================
+// PHG Profit Calculator — script.js
+// Live-recalculating monthly P&L. No build step, no dependencies.
+//
+// HOW TO UPDATE THE ROSTER:
+//   1. Change the numbers in DEFAULTS below (counts, rates, hours)
+//   2. Update the initials list in index.html (#rosterBox)
+//   3. Bump ROSTER_DATE
+// ============================================================
 
-// Static Expense Inputs
-const clickToDial = document.getElementById('clickToDial');
-const aceDialer = document.getElementById('aceDialer');
-const cadCallReport = document.getElementById('cadCallReport');
-const incallRecordings = document.getElementById('incallRecordings');
-const broadcastCalls = document.getElementById('broadcastCalls');
-const simplicityCrm = document.getElementById('simplicityCrm');
-const idiBatching = document.getElementById('idiBatching');
-const adminPayroll = document.getElementById('adminPayroll');
-const rsaManagement = document.getElementById('rsaManagement');
+const ROSTER_DATE = '2026-08-21';
+const STORAGE_KEY = 'phg-profit-calc-v2';
 
-// Variable Expense Inputs
-const localLineCost = document.getElementById('localLineCost');
-const localLineCount = document.getElementById('localLineCount');
-const dialerLinesCost = document.getElementById('dialerLinesCost');
-const dialerLinesCount = document.getElementById('dialerLinesCount');
-const overseasSalary = document.getElementById('overseasSalary');
-const overseasCount = document.getElementById('overseasCount');
-const tijSalary = document.getElementById('tijSalary');
-const tijCount = document.getElementById('tijCount');
-const rsaSalary = document.getElementById('rsaSalary');
-const rsaCount = document.getElementById('rsaCount');
+// ---------- Defaults (Aug 2026 roster) ----------
+const DEFAULTS = {
+  teams: {
+    tjCloser: { count: 9,  rate: 7.80, hours: 160 },
+    tjDialer: { count: 3,  rate: 7.80, hours: 160 },
+    ph4:      { count: 6,  rate: 4.00, hours: 160 },
+    ph3:      { count: 17, rate: 3.00, hours: 160 },
+    eg:       { count: 1,  rate: 4.00, hours: 160 },
+  },
+  adminCount: 3,
+  localLineCost: 60,
+  dialerLineCost: 100,
+  expenses: [
+    { name: 'Click to Dial · local presence', amount: 200 },
+    { name: 'ACE predictive dialer',          amount: 1200 },
+    { name: 'CAD call report',                amount: 140 },
+    { name: 'In-call recordings',             amount: 70 },
+    { name: 'Broadcast calls',                amount: 1600 },
+    { name: 'SimpliCity CRM',                 amount: 2000 },
+    { name: 'IDI batching',                   amount: 6250 },
+    { name: 'Admin payroll',                  amount: 12000 },
+  ],
+  mode: 'total',
+  totalSales: 0,
+  closerAvg: 0,
+  dialerAvg: 0,
+  remitPct: 37, reservePct: 5, feePct: 3,
+  closerCommRate: 10, closerCommFloor: 4000,
+  dialerCommRate: 5,  dialerCommFloor: 2000,
+};
 
-// Revenue Inputs
-const totalMonthlySales = document.getElementById('totalMonthlySales');
-const dialerAverageInput = document.getElementById('dialerAverageInput');
-const closerAverageInput = document.getElementById('closerAverageInput');
-const modeTotalSales = document.getElementById('modeTotalSales');
-const modeAgentAverage = document.getElementById('modeAgentAverage');
-const totalSalesInputDiv = document.getElementById('totalSalesInput');
-const agentAverageInputDiv = document.getElementById('agentAverageInput');
+const TEAM_IDS = Object.keys(DEFAULTS.teams);
+const $ = (id) => document.getElementById(id);
 
-// Result Display Elements
-const totalStaticExpenses = document.getElementById('totalStaticExpenses');
-const totalVariableExpenses = document.getElementById('totalVariableExpenses');
-const totalAgents = document.getElementById('totalAgents');
-const dialerAverageSalesDisplay = document.getElementById('dialerAverageSales');
-const closerAverageSalesDisplay = document.getElementById('closerAverageSales');
-const calculatedTotalSales = document.getElementById('calculatedTotalSales');
-const commission = document.getElementById('commission');
-const totalExpenses = document.getElementById('totalExpenses');
-const totalRemitAmount = document.getElementById('totalRemitAmount');
-const netRevenue = document.getElementById('netRevenue');
-const breakEvenSales = document.getElementById('breakEvenSales');
-const profit = document.getElementById('profit');
-const profitItem = document.getElementById('profitItem');
+// ---------- Helpers ----------
+function money(n, cents = false) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency', currency: 'USD',
+    minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0,
+  }).format(n || 0);
+}
+function num(id) { const v = parseFloat($(id).value); return isNaN(v) ? 0 : Math.max(0, v); }
+function int(id) { const v = parseInt($(id).value, 10); return isNaN(v) ? 0 : Math.max(0, v); }
+function clampPct(v) { return Math.min(100, Math.max(0, v)); }
 
-// Constants
-const DIALER_COMMISSION_THRESHOLD = 2000;
-const DIALER_COMMISSION_RATE = 0.05; // 5% for dialers
-const CLOSER_COMMISSION_THRESHOLD = 4000;
-const CLOSER_COMMISSION_RATE = 0.10; // 10% for closers
-const CLIENT_REMIT_RATE = 0.37; // 37% CLIENT Remit
-const NET_REVENUE_RATE = 0.55; // 55% after deductions (100% - 37% - 5% - 3%)
+let pinned = null; // pinned scenario results for comparison
 
-/**
- * Format number as currency
- */
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }).format(amount);
+// ---------- Expense rows ----------
+function addExpenseRow(name = '', amount = 0) {
+  const row = document.createElement('div');
+  row.className = 'expense-row';
+  row.innerHTML = `
+    <input type="text" class="exp-name" placeholder="Expense name">
+    <input type="number" class="exp-amount" min="0" step="0.01">
+    <button type="button" class="remove" title="Remove">×</button>`;
+  row.querySelector('.exp-name').value = name;
+  row.querySelector('.exp-amount').value = amount;
+  row.querySelector('.remove').addEventListener('click', () => { row.remove(); recalc(); });
+  row.querySelectorAll('input').forEach(i => i.addEventListener('input', recalc));
+  $('expenseList').appendChild(row);
+}
+function readExpenses() {
+  return Array.from(document.querySelectorAll('.expense-row')).map(r => ({
+    name: r.querySelector('.exp-name').value,
+    amount: Math.max(0, parseFloat(r.querySelector('.exp-amount').value) || 0),
+  }));
 }
 
-/**
- * Get numeric value from input, defaulting to 0 if empty or invalid
- */
-function getNumericValue(input) {
-    const value = parseFloat(input.value) || 0;
-    return Math.max(0, value); // Ensure non-negative
+// ---------- Phone line auto-fill ----------
+function autoLines() {
+  const closers = int('tjCloserCount');
+  const agents  = TEAM_IDS.reduce((s, t) => s + int(t + 'Count'), 0);
+  const admin   = int('adminCount');
+  const local = $('localLineCount'), dialer = $('dialerLineCount');
+  if (local.dataset.auto === 'true')  local.value  = closers + admin;
+  if (dialer.dataset.auto === 'true') dialer.value = agents + admin;
 }
 
-/**
- * Get integer value from input, defaulting to 0 if empty or invalid
- */
-function getIntegerValue(input) {
-    const value = parseInt(input.value) || 0;
-    return Math.max(0, value); // Ensure non-negative
+// ---------- Core calculation ----------
+function compute() {
+  const t = {};
+  let tjPayroll = 0, osPayroll = 0, agents = 0;
+  TEAM_IDS.forEach(id => {
+    const count = int(id + 'Count'), rate = num(id + 'Rate'), hours = num(id + 'Hours');
+    const cost = count * rate * hours;
+    t[id] = { count, rate, hours, cost };
+    agents += count;
+    if (id.startsWith('tj')) tjPayroll += cost; else osPayroll += cost;
+  });
+
+  const closers = t.tjCloser.count;
+  const dialers = agents - closers;
+
+  // Collections
+  const mode = document.querySelector('.seg-btn.active').dataset.mode;
+  let closerAvg, dialerAvg, gross;
+  if (mode === 'avg') {
+    closerAvg = num('closerAvg'); dialerAvg = num('dialerAvg');
+    gross = closerAvg * closers + dialerAvg * dialers;
+  } else {
+    gross = num('totalSales');
+    // Split evenly per head when only a total is known
+    closerAvg = agents ? gross / agents : 0;
+    dialerAvg = agents ? gross / agents : 0;
+  }
+
+  // Deductions
+  const remitPct = clampPct(num('remitPct')), reservePct = clampPct(num('reservePct')), feePct = clampPct(num('feePct'));
+  const netRate = Math.max(0, (100 - remitPct - reservePct - feePct) / 100);
+  const remitAmt = gross * remitPct / 100;
+  const feesAmt  = gross * (reservePct + feePct) / 100;
+  const netRev   = gross * netRate;
+
+  // Commission (flat approximation)
+  const cRate = num('closerCommRate') / 100, cFloor = num('closerCommFloor');
+  const dRate = num('dialerCommRate') / 100, dFloor = num('dialerCommFloor');
+  const commission =
+    (closerAvg > cFloor ? (closerAvg - cFloor) * cRate * closers : 0) +
+    (dialerAvg > dFloor ? (dialerAvg - dFloor) * dRate * dialers : 0);
+
+  // Phone + overhead
+  const phone = num('localLineCost') * int('localLineCount') + num('dialerLineCost') * int('dialerLineCount');
+  const overhead = readExpenses().reduce((s, e) => s + e.amount, 0);
+
+  const expenses = tjPayroll + osPayroll + commission + phone + overhead;
+  const profit = netRev - expenses;
+  const margin = netRev ? profit / netRev * 100 : 0;
+
+  // Break-even: commission depends on sales, so solve the fixed part first
+  const fixed = tjPayroll + osPayroll + phone + overhead;
+  const breakEven = netRate > 0 ? fixed / netRate : 0;
+
+  return {
+    t, agents, closers, dialers, gross, closerAvg, dialerAvg,
+    remitAmt, feesAmt, netRev, netRate, tjPayroll, osPayroll, commission, phone, overhead,
+    expenses, profit, margin, breakEven, fixed,
+    costPerAgent: agents ? expenses / agents : 0,
+    revPerAgent:  agents ? netRev / agents : 0,
+    // Per-agent target: in avg mode, what each closer needs given the dialer avg; otherwise an even split
+    beCloserAvg:  mode === 'avg'
+      ? (closers ? Math.max(0, breakEven - dialerAvg * dialers) / closers : 0)
+      : (agents ? breakEven / agents : 0),
+    mode,
+  };
 }
 
-/**
- * Calculate total static expenses
- */
-function calculateTotalStaticExpenses() {
-    return getNumericValue(clickToDial) +
-           getNumericValue(aceDialer) +
-           getNumericValue(cadCallReport) +
-           getNumericValue(incallRecordings) +
-           getNumericValue(broadcastCalls) +
-           getNumericValue(simplicityCrm) +
-           getNumericValue(idiBatching) +
-           getNumericValue(adminPayroll) +
-           getNumericValue(rsaManagement);
+// ---------- Render ----------
+function render(r) {
+  TEAM_IDS.forEach(id => { $(id + 'Cost').textContent = money(r.t[id].cost); });
+
+  const p = $('profit');
+  p.textContent = money(r.profit);
+  p.classList.toggle('pos', r.profit > 0);
+  p.classList.toggle('neg', r.profit < 0);
+  $('marginLine').textContent = r.gross ? `${r.margin.toFixed(1)}% margin on net revenue` : 'no collections entered';
+
+  // Break-even bar: break-even sits at 2/3 of the track; collected fills relative to it
+  const ratio = r.breakEven ? r.gross / r.breakEven : 0;
+  const fillPct = Math.min(100, ratio * 66.6);
+  $('beFill').style.width = fillPct + '%';
+  $('beCollected').textContent = money(r.gross);
+  $('breakEven').textContent = money(r.breakEven);
+  const gap = r.gross - r.breakEven;
+  $('beNote').textContent = !r.gross
+    ? 'Enter collections to see where you land.'
+    : gap >= 0
+      ? `${money(gap)} above break-even (${(ratio * 100).toFixed(0)}% of target).`
+      : `${money(-gap)} short of break-even — that's ${r.closers ? money(-gap / r.closers) + ' more per closer' : 'the gap'}.`;
+
+  $('grossCollected').textContent = money(r.gross);
+  $('remitAmt').textContent = money(r.remitAmt);
+  $('feesAmt').textContent = money(r.feesAmt);
+  $('netRevenue').textContent = money(r.netRev);
+  $('tjPayroll').textContent = money(r.tjPayroll);
+  $('osPayroll').textContent = money(r.osPayroll);
+  $('commission').textContent = money(r.commission);
+  $('phoneCost').textContent = money(r.phone);
+  $('overheadCost').textContent = money(r.overhead);
+  $('totalExpenses').textContent = money(r.expenses);
+  $('totalAgents').textContent = r.agents;
+  $('beCloserAvg').textContent = money(r.beCloserAvg);
+  $('beCloserAvgLabel').textContent = r.mode === 'avg' ? 'Closer avg needed to break even' : 'Per-agent avg needed to break even';
+  $('costPerAgent').textContent = money(r.costPerAgent);
+  $('revPerAgent').textContent = money(r.revPerAgent);
+  $('netRateDisplay').textContent = (r.netRate * 100).toFixed(1) + '%';
+
+  const pd = $('pinDelta');
+  if (pinned) {
+    const d = r.profit - pinned.profit;
+    pd.hidden = false;
+    pd.textContent = `${d >= 0 ? '+' : '−'}${money(Math.abs(d))} vs pinned`;
+    pd.className = 'pin-delta ' + (d > 0 ? 'pos' : d < 0 ? 'neg' : '');
+  } else pd.hidden = true;
 }
 
-/**
- * Auto-calculate LOCAL and DIALER Lines based on agent counts
- */
-function autoCalculatePhoneLines() {
-    const tijCount = getIntegerValue(document.getElementById('tijCount'));
-    const rsaCount = getIntegerValue(document.getElementById('rsaCount'));
-    const overseasCount = getIntegerValue(document.getElementById('overseasCount'));
-    const adminCount = 4; // Always 4 admin members
-    
-    // LOCAL Lines: TIJ + RSA + Admin (4)
-    const calculatedLocalLines = tijCount + rsaCount + adminCount;
-    
-    // DIALER Lines: TIJ + RSA + Overseas + Admin (4)
-    const calculatedDialerLines = tijCount + rsaCount + overseasCount + adminCount;
-    
-    // Only auto-update if the fields are empty or match the previous calculated value
-    // This allows manual override while still auto-calculating when agent counts change
-    const currentLocalLines = getIntegerValue(localLineCount);
-    const currentDialerLines = getIntegerValue(dialerLinesCount);
-    
-    // Store the last calculated values to detect if user has manually changed them
-    if (!localLineCount.dataset.lastCalculated || 
-        currentLocalLines === parseInt(localLineCount.dataset.lastCalculated)) {
-        localLineCount.value = calculatedLocalLines;
-        localLineCount.dataset.lastCalculated = calculatedLocalLines;
-    }
-    
-    if (!dialerLinesCount.dataset.lastCalculated || 
-        currentDialerLines === parseInt(dialerLinesCount.dataset.lastCalculated)) {
-        dialerLinesCount.value = calculatedDialerLines;
-        dialerLinesCount.dataset.lastCalculated = calculatedDialerLines;
-    }
+function recalc() {
+  autoLines();
+  const r = compute();
+  render(r);
+  save();
+  return r;
 }
 
-/**
- * Calculate total variable expenses
- */
-function calculateTotalVariableExpenses() {
-    const localLineTotal = getNumericValue(localLineCost) * getIntegerValue(localLineCount);
-    const dialerLinesTotal = getNumericValue(dialerLinesCost) * getIntegerValue(dialerLinesCount);
-    const overseasTotal = getNumericValue(overseasSalary) * getIntegerValue(overseasCount);
-    const tijTotal = getNumericValue(tijSalary) * getIntegerValue(tijCount);
-    const rsaTotal = getNumericValue(rsaSalary) * getIntegerValue(rsaCount);
-    
-    return localLineTotal + dialerLinesTotal + overseasTotal + tijTotal + rsaTotal;
+// ---------- Persistence ----------
+function save() {
+  const state = { mode: compute().mode, expenses: readExpenses(), fields: {} };
+  document.querySelectorAll('input[id]').forEach(i => { state.fields[i.id] = i.value; });
+  state.auto = { local: $('localLineCount').dataset.auto, dialer: $('dialerLineCount').dataset.auto };
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+function load() {
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch (e) {}
+  if (!s) return false;
+  Object.entries(s.fields || {}).forEach(([id, v]) => { if ($(id)) $(id).value = v; });
+  $('expenseList').innerHTML = '';
+  (s.expenses || DEFAULTS.expenses).forEach(e => addExpenseRow(e.name, e.amount));
+  if (s.auto) { $('localLineCount').dataset.auto = s.auto.local; $('dialerLineCount').dataset.auto = s.auto.dialer; }
+  setMode(s.mode || 'total');
+  return true;
+}
+function applyDefaults() {
+  TEAM_IDS.forEach(id => {
+    const d = DEFAULTS.teams[id];
+    $(id + 'Count').value = d.count; $(id + 'Rate').value = d.rate.toFixed(2); $(id + 'Hours').value = d.hours;
+  });
+  $('adminCount').value = DEFAULTS.adminCount;
+  $('localLineCost').value = DEFAULTS.localLineCost;
+  $('dialerLineCost').value = DEFAULTS.dialerLineCost;
+  $('localLineCount').dataset.auto = 'true';
+  $('dialerLineCount').dataset.auto = 'true';
+  $('expenseList').innerHTML = '';
+  DEFAULTS.expenses.forEach(e => addExpenseRow(e.name, e.amount));
+  ['totalSales','closerAvg','dialerAvg','remitPct','reservePct','feePct',
+   'closerCommRate','closerCommFloor','dialerCommRate','dialerCommFloor'].forEach(id => { $(id).value = DEFAULTS[id]; });
+  setMode(DEFAULTS.mode);
 }
 
-/**
- * Calculate total number of agents
- */
-function calculateTotalAgents() {
-    return getIntegerValue(overseasCount) + 
-           getIntegerValue(tijCount) + 
-           getIntegerValue(rsaCount);
+// ---------- Mode switch ----------
+function setMode(mode) {
+  document.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  $('modeTotal').hidden = mode !== 'total';
+  $('modeAvg').hidden = mode !== 'avg';
 }
 
-/**
- * Calculate dialer commission (5% on sales above $2,000 per agent)
- */
-function calculateDialerCommission(dialerAverage, overseasCount) {
-    if (overseasCount === 0 || dialerAverage <= DIALER_COMMISSION_THRESHOLD) {
-        return 0;
-    }
-    
-    const excessAmount = dialerAverage - DIALER_COMMISSION_THRESHOLD;
-    return excessAmount * DIALER_COMMISSION_RATE * overseasCount;
+// ---------- Toast ----------
+let toastTimer;
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 2200);
 }
 
-/**
- * Calculate closer commission (10% on sales above $4,000 per agent)
- */
-function calculateCloserCommission(closerAverage, closerCount) {
-    if (closerCount === 0 || closerAverage <= CLOSER_COMMISSION_THRESHOLD) {
-        return 0;
-    }
-    
-    const excessAmount = closerAverage - CLOSER_COMMISSION_THRESHOLD;
-    return excessAmount * CLOSER_COMMISSION_RATE * closerCount;
+// ---------- Copy summary ----------
+function summaryText(r) {
+  const lines = [
+    `PHG Profit Calculator — roster ${ROSTER_DATE}`,
+    `Agents: ${r.agents} (${r.closers} closers, ${r.dialers} dialers)`,
+    `Gross collected: ${money(r.gross)}`,
+    `Net revenue (${(r.netRate*100).toFixed(0)}%): ${money(r.netRev)}`,
+    `Tijuana payroll: ${money(r.tjPayroll)}`,
+    `Overseas payroll: ${money(r.osPayroll)}`,
+    `Commission: ${money(r.commission)}`,
+    `Phone lines: ${money(r.phone)}`,
+    `Overhead: ${money(r.overhead)}`,
+    `Total expenses: ${money(r.expenses)}`,
+    `Break-even: ${money(r.breakEven)}`,
+    `Profit / loss: ${money(r.profit)} (${r.margin.toFixed(1)}% margin)`,
+  ];
+  if (pinned) lines.push(`vs pinned: ${r.profit - pinned.profit >= 0 ? '+' : ''}${money(r.profit - pinned.profit)}`);
+  return lines.join('\n');
 }
 
-/**
- * Calculate total commission based on dialer and closer averages
- */
-function calculateCommission() {
-    const overseasCount = getIntegerValue(document.getElementById('overseasCount'));
-    const tijCount = getIntegerValue(document.getElementById('tijCount'));
-    const rsaCount = getIntegerValue(document.getElementById('rsaCount'));
-    const closerCount = tijCount + rsaCount;
-    
-    let dialerAverage = 0;
-    let closerAverage = 0;
-    
-    if (modeAgentAverage && modeAgentAverage.checked) {
-        // Get averages from inputs
-        dialerAverage = getNumericValue(dialerAverageInput);
-        closerAverage = getNumericValue(closerAverageInput);
-    } else {
-        // Calculate averages from total sales
-        const totalSales = getNumericValue(totalMonthlySales);
-        const totalAgents = overseasCount + closerCount;
-        
-        if (totalAgents > 0) {
-            // For total sales mode, we need to estimate averages
-            // This is a simplified approach - assumes equal distribution
-            dialerAverage = overseasCount > 0 ? totalSales / totalAgents : 0;
-            closerAverage = closerCount > 0 ? totalSales / totalAgents : 0;
-        }
-    }
-    
-    const dialerCommission = calculateDialerCommission(dialerAverage, overseasCount);
-    const closerCommission = calculateCloserCommission(closerAverage, closerCount);
-    
-    return dialerCommission + closerCommission;
-}
+// ---------- Wire up ----------
+document.addEventListener('DOMContentLoaded', () => {
+  if (!load()) applyDefaults();
 
-/**
- * Get total monthly sales based on input mode
- */
-function getTotalMonthlySales() {
-    if (modeAgentAverage && modeAgentAverage.checked) {
-        // Calculate from separate dialer and closer averages
-        const dialerAvg = getNumericValue(dialerAverageInput);
-        const closerAvg = getNumericValue(closerAverageInput);
-        const overseasCount = getIntegerValue(document.getElementById('overseasCount'));
-        const tijCount = getIntegerValue(document.getElementById('tijCount'));
-        const rsaCount = getIntegerValue(document.getElementById('rsaCount'));
-        const closerCount = tijCount + rsaCount;
-        
-        const dialerSales = dialerAvg * overseasCount;
-        const closerSales = closerAvg * closerCount;
-        return dialerSales + closerSales;
-    } else {
-        // Use direct input
-        return getNumericValue(totalMonthlySales);
-    }
-}
-
-/**
- * Main calculation function
- */
-function performCalculations() {
-    // Get input values
-    const staticExpenses = calculateTotalStaticExpenses();
-    const variableExpenses = calculateTotalVariableExpenses();
-    const agents = calculateTotalAgents();
-    
-    // Get agent counts
-    const overseasCount = getIntegerValue(document.getElementById('overseasCount'));
-    const tijCount = getIntegerValue(document.getElementById('tijCount'));
-    const rsaCount = getIntegerValue(document.getElementById('rsaCount'));
-    const closerCount = tijCount + rsaCount;
-    
-    // Get total monthly sales based on input mode
-    const sales = getTotalMonthlySales();
-    
-    // Calculate commission (uses new split calculation)
-    const commissionAmount = calculateCommission();
-    
-    // Calculate total expenses
-    const expenses = staticExpenses + variableExpenses + commissionAmount;
-    
-    // Calculate remit amount (37% of sales)
-    const remitAmount = sales * CLIENT_REMIT_RATE;
-    
-    // Calculate net revenue
-    const netRev = sales * NET_REVENUE_RATE;
-    
-    // Calculate break-even sales amount
-    const breakEven = expenses / NET_REVENUE_RATE;
-    
-    // Calculate profit/loss
-    const profitAmount = netRev - expenses;
-    
-    // Calculate and display dialer and closer averages
-    let dialerAverage = 0;
-    let closerAverage = 0;
-    
-    if (modeAgentAverage && modeAgentAverage.checked) {
-        // Get from inputs
-        dialerAverage = getNumericValue(dialerAverageInput);
-        closerAverage = getNumericValue(closerAverageInput);
-    } else {
-        // Calculate from total sales (weighted average)
-        if (overseasCount > 0) {
-            dialerAverage = sales / agents;
-        }
-        if (closerCount > 0) {
-            closerAverage = sales / agents;
-        }
-    }
-    
-    // Update display
-    totalStaticExpenses.textContent = formatCurrency(staticExpenses);
-    totalVariableExpenses.textContent = formatCurrency(variableExpenses);
-    totalAgents.textContent = agents;
-    
-    // Show calculated total sales (especially important when using agent average mode)
-    calculatedTotalSales.textContent = formatCurrency(sales);
-    
-    // Display separate dialer and closer averages
-    dialerAverageSalesDisplay.textContent = formatCurrency(dialerAverage);
-    closerAverageSalesDisplay.textContent = formatCurrency(closerAverage);
-    
-    commission.textContent = formatCurrency(commissionAmount);
-    totalExpenses.textContent = formatCurrency(expenses);
-    totalRemitAmount.textContent = formatCurrency(remitAmount);
-    netRevenue.textContent = formatCurrency(netRev);
-    breakEvenSales.textContent = formatCurrency(breakEven);
-    profit.textContent = formatCurrency(profitAmount);
-    
-    // Color code profit/loss
-    if (profitAmount > 0) {
-        profitItem.classList.add('profit');
-        profitItem.classList.remove('loss');
-    } else if (profitAmount < 0) {
-        profitItem.classList.add('loss');
-        profitItem.classList.remove('profit');
-    } else {
-        profitItem.classList.remove('profit', 'loss');
-    }
-}
-
-/**
- * Handle revenue mode change
- */
-function handleRevenueModeChange() {
-    if (modeTotalSales.checked) {
-        totalSalesInputDiv.style.display = 'block';
-        agentAverageInputDiv.style.display = 'none';
-    } else {
-        totalSalesInputDiv.style.display = 'none';
-        agentAverageInputDiv.style.display = 'block';
-    }
-    performCalculations();
-}
-
-/**
- * Reset all inputs to default values
- */
-function resetForm() {
-    // Reset static expenses
-    clickToDial.value = 200;
-    aceDialer.value = 1200;
-    cadCallReport.value = 140;
-    incallRecordings.value = 70;
-    broadcastCalls.value = 1600;
-    simplicityCrm.value = 2000;
-    idiBatching.value = 6250;
-    adminPayroll.value = 12000;
-    rsaManagement.value = 1500;
-    
-    // Reset variable expenses
-    localLineCost.value = 60;
-    dialerLinesCost.value = 100;
-    overseasSalary.value = 720;
-    overseasCount.value = 0;
-    tijSalary.value = 1300;
-    tijCount.value = 0;
-    rsaSalary.value = 1100;
-    rsaCount.value = 0;
-    
-    // Auto-calculate phone lines after reset
-    autoCalculatePhoneLines();
-    
-    // Reset revenue
-    modeTotalSales.checked = true;
-    totalMonthlySales.value = 0;
-    dialerAverageInput.value = 0;
-    closerAverageInput.value = 0;
-    handleRevenueModeChange();
-}
-
-/**
- * Validate inputs and handle errors
- */
-function validateInputs() {
-    const agents = calculateTotalAgents();
-    
-    // Validate based on input mode
-    if (modeAgentAverage.checked) {
-        const dialerAvg = getNumericValue(dialerAverageInput);
-        const closerAvg = getNumericValue(closerAverageInput);
-        if (dialerAvg < 0) {
-            alert('Dialer Average Sales cannot be negative');
-            return false;
-        }
-        if (closerAvg < 0) {
-            alert('Closer Average Sales cannot be negative');
-            return false;
-        }
-        if (agents === 0) {
-            alert('Please enter at least one agent to calculate using Agent Average mode');
-            return false;
-        }
-    } else {
-        const sales = getNumericValue(totalMonthlySales);
-        if (sales < 0) {
-            alert('Total Monthly Sales cannot be negative');
-            return false;
-        }
-    }
-    
-    // Check for negative agent counts
-    const allCounts = [
-        getIntegerValue(localLineCount),
-        getIntegerValue(dialerLinesCount),
-        getIntegerValue(overseasCount),
-        getIntegerValue(tijCount),
-        getIntegerValue(rsaCount)
-    ];
-    
-    if (allCounts.some(count => count < 0)) {
-        alert('Agent counts cannot be negative');
-        return false;
-    }
-    
-    return true;
-}
-
-// Event Listeners
-calculateBtn.addEventListener('click', () => {
-    if (validateInputs()) {
-        performCalculations();
-    }
-});
-
-resetBtn.addEventListener('click', resetForm);
-
-// Revenue mode change listeners
-modeTotalSales.addEventListener('change', handleRevenueModeChange);
-modeAgentAverage.addEventListener('change', handleRevenueModeChange);
-
-// Auto-calculate phone lines when agent counts change
-[overseasCount, tijCount, rsaCount].forEach(input => {
-    input.addEventListener('input', () => {
-        autoCalculatePhoneLines();
-        if (modeAgentAverage.checked) {
-            performCalculations();
-        }
+  // Steppers
+  document.querySelectorAll('.step').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = btn.parentElement.querySelector('input');
+      input.value = Math.max(0, (parseInt(input.value, 10) || 0) + parseInt(btn.dataset.step, 10));
+      recalc();
     });
-});
+  });
 
-// Track manual changes to phone line counts
-localLineCount.addEventListener('input', () => {
-    localLineCount.dataset.lastCalculated = localLineCount.value;
-});
+  // Any input recalcs
+  document.querySelectorAll('input').forEach(i => i.addEventListener('input', recalc));
 
-dialerLinesCount.addEventListener('input', () => {
-    dialerLinesCount.dataset.lastCalculated = dialerLinesCount.value;
-});
+  // Manual override of auto line counts
+  ['localLineCount', 'dialerLineCount'].forEach(id => {
+    $(id).addEventListener('input', () => { $(id).dataset.auto = 'false'; recalc(); });
+  });
+  $('relinkLines').addEventListener('click', () => {
+    $('localLineCount').dataset.auto = 'true'; $('dialerLineCount').dataset.auto = 'true';
+    recalc(); toast('Phone lines re-linked to headcount');
+  });
 
-// Recalculate when dialer average input changes
-dialerAverageInput.addEventListener('input', () => {
-    if (modeAgentAverage.checked) {
-        performCalculations();
-    }
-});
+  // Mode
+  document.querySelectorAll('.seg-btn').forEach(b => b.addEventListener('click', () => { setMode(b.dataset.mode); recalc(); }));
 
-// Recalculate when closer average input changes
-closerAverageInput.addEventListener('input', () => {
-    if (modeAgentAverage.checked) {
-        performCalculations();
-    }
-});
+  // Expenses
+  $('addExpenseBtn').addEventListener('click', () => { addExpenseRow(); recalc(); $('expenseList').lastElementChild.querySelector('input').focus(); });
 
-// Recalculate when total monthly sales input changes
-totalMonthlySales.addEventListener('input', () => {
-    if (modeTotalSales.checked) {
-        performCalculations();
-    }
-});
+  // Roster toggle
+  $('rosterToggle').addEventListener('click', () => {
+    const box = $('rosterBox'); box.hidden = !box.hidden;
+    $('rosterToggle').textContent = box.hidden ? 'show initials' : 'hide initials';
+  });
 
-// Initialize with default calculations
-window.addEventListener('DOMContentLoaded', () => {
-    autoCalculatePhoneLines();
-    handleRevenueModeChange();
-});
+  // Pin / copy / reset
+  $('pinBtn').addEventListener('click', () => {
+    const r = compute();
+    if (pinned) { pinned = null; $('pinBtn').textContent = 'Pin scenario'; toast('Pin cleared'); }
+    else { pinned = r; $('pinBtn').textContent = 'Unpin'; toast(`Pinned ${money(r.profit)} as baseline`); }
+    recalc();
+  });
+  $('copyBtn').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(summaryText(compute())); toast('Summary copied'); }
+    catch (e) { toast('Copy failed — select the ledger manually'); }
+  });
+  $('resetBtn').addEventListener('click', () => {
+    if (!confirm('Reset everything to the Aug 2026 defaults?')) return;
+    pinned = null; $('pinBtn').textContent = 'Pin scenario';
+    applyDefaults(); recalc(); toast('Reset to defaults');
+  });
 
+  recalc();
+});

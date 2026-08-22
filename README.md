@@ -1,85 +1,43 @@
-# Business Profit Calculator
+# PHG Profit Calculator
 
-A web-based tool to calculate business expenses, break-even points, and profit margins. This calculator helps you understand your monthly financial position by accounting for static expenses, variable per-agent expenses, commission calculations, and revenue deductions.
+Monthly P&L, break-even, and what-if tool for Powerhouze Group. Static site — no build step, no dependencies. Open `index.html` or deploy to Render / Vercel / GitHub Pages as-is.
 
-## Features
+## What it does
 
-- **Static Expenses**: Fixed monthly expenses that remain constant
-- **Variable Expenses**: Expenses that vary based on the number of agents
-  - Phone services (LOCAL Line, DIALER Lines)
-  - Agent salaries (Overseas, TIJ, RSA agents)
-- **Commission Calculation**: Automatic calculation of 15% commission on sales over $4,000 per agent (based on average)
-- **Revenue Deductions**: Accounts for CLIENT Remit (37%), Merchant Reserves (5%), and Merchant Fees (3%)
-- **Break-Even Analysis**: Calculates the sales amount needed to cover all expenses
-- **Profit/Loss Calculation**: Shows net profit or loss after all expenses and deductions
+- **Team** — headcount, $/hr and hours/month per group (TJ closers, TJ dialers, PH $4 tier, PH $3 tier, Egypt, admin seats). Payroll shows per card.
+- **Phone lines** — seat counts auto-fill from headcount (local = TJ closers + admin; dialer = all agents + admin). Type over to override, "re-link" to go back to auto.
+- **Overhead** — editable list of fixed costs. Add / remove rows as vendors change.
+- **Collections** — enter a total, or closer/dialer averages. Remit %, reserves, fees, and commission thresholds are editable under "Deductions & commission".
+- **Ledger** — live profit/loss, margin, break-even bar, pay-stub style breakdown, per-agent numbers.
+- **Pin scenario** — freeze the current result as a baseline, then change anything and see the delta.
+- **Copy summary** — plain-text summary for Discord / email.
+- Inputs persist in `localStorage`. **Reset** restores the defaults.
 
-## How to Use
-
-1. **Enter Static Expenses**: Review and adjust the fixed monthly expenses as needed
-2. **Enter Variable Expenses**: 
-   - Input the number of agents using LOCAL Line and DIALER Lines
-   - Input the number of each type of agent (Overseas, TIJ, RSA)
-3. **Enter Revenue**: Input your total monthly sales amount
-4. **Calculate**: Click the "Calculate" button to see results
-5. **Review Results**: 
-   - Break-Even Sales Amount: The sales needed to cover all expenses
-   - Total Expenses: Sum of all expenses
-   - Net Revenue: 55% of total sales (after deductions)
-   - Profit/Loss: Net revenue minus total expenses
-
-## Calculation Formulas
-
-- **Total Static Expenses** = Sum of all static expense values
-- **Total Variable Expenses** = (LOCAL Line × count) + (DIALER Lines × count) + (Agent salaries × counts)
-- **Total Agents** = Sum of all agent counts
-- **Agent Average Sales** = Total Monthly Sales / Total Agents
-- **Commission** = If Agent Average > $4,000, then 15% × (Agent Average - $4,000) × Total Agents
-- **Total Expenses** = Total Static + Total Variable + Commission
-- **Net Revenue** = Total Monthly Sales × 0.55 (after 45% deductions)
-- **Break-Even Sales** = Total Expenses / 0.55
-- **Profit** = Net Revenue - Total Expenses
-
-## Setup and Deployment
-
-### Local Development
-
-1. Clone or download this repository
-2. Open `index.html` in a web browser
-3. No build process or dependencies required
-
-### Deployment to Render
-
-1. Push this repository to GitHub
-2. Log in to [Render](https://render.com)
-3. Create a new "Static Site" service
-4. Connect your GitHub repository
-5. Configure:
-   - **Build Command**: (leave empty)
-   - **Publish Directory**: (leave empty or set to `/`)
-6. Deploy
-
-The site will be available at a Render-provided URL.
-
-## File Structure
+## Formulas
 
 ```
-profit-calculator/
-├── index.html      # Main HTML structure
-├── styles.css      # Styling and layout
-├── script.js       # Calculation logic
-├── README.md       # This file
-└── .gitignore      # Git ignore file
+team payroll      = count × $/hr × hrs/mo
+net revenue rate  = 1 − remit% − reserve% − fee%
+net revenue       = gross collected × net rate
+commission        = closers × max(0, closerAvg − closerFloor) × closerRate
+                  + dialers × max(0, dialerAvg − dialerFloor) × dialerRate
+total expenses    = payroll + commission + phone lines + overhead
+profit            = net revenue − total expenses
+break-even        = (payroll + phone lines + overhead) ÷ net rate
 ```
 
-## Browser Support
+## Updating the roster
 
-This application uses modern web standards and works in all modern browsers:
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
+1. Edit `DEFAULTS` at the top of `script.js` (counts, rates, hours, overhead rows).
+2. Edit the initials list in `index.html` under `#rosterBox`.
+3. Bump `ROSTER_DATE` in `script.js` and the "Roster as of" text in `index.html`.
 
-## License
+**Current defaults (Aug 21, 2026):** 9 TJ closers + 3 TJ dialers @ $7.80/hr · 6 PH @ $4 · 17 PH @ $3 · 1 Egypt @ $4 · 3 admin seats · 160 hrs/mo.
 
-This project is provided as-is for business use.
+## Files
 
+```
+index.html   structure
+styles.css   PHG brand styling (Archivo + JetBrains Mono)
+script.js    calculation + persistence
+```

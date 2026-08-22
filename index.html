@@ -1,240 +1,293 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Profit Calculator</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PHG Profit Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="logo-container">
-                <img src="https://storage.googleapis.com/msgsndr/7AsSgaSl1IdPndNHqKfs/media/691264f7b0326a15ff5d7cd7.png" alt="PHG Logo" class="logo">
-            </div>
-            <h1>Business Profit Calculator</h1>
-            <p class="subtitle">Calculate expenses, break-even point, and profit margins</p>
-        </header>
 
-        <main>
-            <!-- Static Expenses Section -->
-            <section class="card">
-                <h2><span class="icon">💰</span> Static Expenses (Monthly)</h2>
-                <p class="section-description">Fixed expenses that remain constant each month</p>
-                <div class="expense-grid">
-                    <div class="expense-item">
-                        <label for="clickToDial">CLICK TO DIAL - Local Presence</label>
-                        <input type="number" id="clickToDial" value="200" min="0" step="0.01" placeholder="200">
-                    </div>
-                    <div class="expense-item">
-                        <label for="aceDialer">ACE Predictive Dialer</label>
-                        <input type="number" id="aceDialer" value="1200" min="0" step="0.01" placeholder="1200">
-                    </div>
-                    <div class="expense-item">
-                        <label for="cadCallReport">CAD Call Report</label>
-                        <input type="number" id="cadCallReport" value="140" min="0" step="0.01" placeholder="140">
-                    </div>
-                    <div class="expense-item">
-                        <label for="incallRecordings">Incall Recordings</label>
-                        <input type="number" id="incallRecordings" value="70" min="0" step="0.01" placeholder="70">
-                    </div>
-                    <div class="expense-item">
-                        <label for="broadcastCalls">BROADCAST Calls</label>
-                        <input type="number" id="broadcastCalls" value="1600" min="0" step="0.01" placeholder="1600">
-                    </div>
-                    <div class="expense-item">
-                        <label for="simplicityCrm">SIMPLICITY CRM</label>
-                        <input type="number" id="simplicityCrm" value="2000" min="0" step="0.01" placeholder="2000">
-                    </div>
-                    <div class="expense-item">
-                        <label for="idiBatching">IDI Batching</label>
-                        <input type="number" id="idiBatching" value="6250" min="0" step="0.01" placeholder="6250">
-                    </div>
-                    <div class="expense-item">
-                        <label for="adminPayroll">Admin Payroll</label>
-                        <input type="number" id="adminPayroll" value="12000" min="0" step="0.01" placeholder="12000">
-                    </div>
-                    <div class="expense-item">
-                        <label for="rsaManagement">RSA Management</label>
-                        <input type="number" id="rsaManagement" value="1500" min="0" step="0.01" placeholder="1500">
-                    </div>
-                </div>
-            </section>
+<header class="topbar">
+  <div class="topbar-inner">
+    <img src="https://storage.googleapis.com/msgsndr/7AsSgaSl1IdPndNHqKfs/media/691264f7b0326a15ff5d7cd7.png" alt="PHG" class="logo">
+    <div class="topbar-title">
+      <h1>Profit Calculator</h1>
+      <p>Monthly P&amp;L · break-even · what-if. Everything recalculates as you type.</p>
+    </div>
+    <div class="topbar-actions">
+      <button id="pinBtn" class="btn btn-ghost" title="Save the current numbers as a baseline to compare against">Pin scenario</button>
+      <button id="copyBtn" class="btn btn-ghost" title="Copy a plain-text summary">Copy summary</button>
+      <button id="resetBtn" class="btn btn-ghost danger" title="Restore the Aug 2026 defaults">Reset</button>
+    </div>
+  </div>
+</header>
 
-            <!-- Variable Expenses Section -->
-            <section class="card">
-                <h2><span class="icon">📊</span> Variable Expenses (Per Agent)</h2>
-                <p class="section-description">Expenses that vary based on the number of agents</p>
-                
-                <div class="variable-expense-group">
-                    <h3><span class="icon-small">📞</span> Phone Services</h3>
-                    <div class="expense-grid">
-                        <div class="expense-item">
-                            <label for="localLineCost">LOCAL Line (per agent)</label>
-                            <input type="number" id="localLineCost" value="60" min="0" step="0.01" placeholder="60">
-                        </div>
-                        <div class="expense-item">
-                            <label for="localLineCount">Number of Agents Using LOCAL Line</label>
-                            <input type="number" id="localLineCount" value="0" min="0" step="1" placeholder="0">
-                        </div>
-                        <div class="expense-item">
-                            <label for="dialerLinesCost">DIALER Lines (per agent)</label>
-                            <input type="number" id="dialerLinesCost" value="100" min="0" step="0.01" placeholder="100">
-                        </div>
-                        <div class="expense-item">
-                            <label for="dialerLinesCount">Number of Agents Using DIALER Lines</label>
-                            <input type="number" id="dialerLinesCount" value="0" min="0" step="1" placeholder="0">
-                        </div>
-                    </div>
-                </div>
+<main class="layout">
 
-                <div class="variable-expense-group">
-                    <h3><span class="icon-small">👥</span> Agent Salaries</h3>
-                    <div class="expense-grid">
-                        <div class="expense-item">
-                            <label for="overseasSalary">Overseas Agents (per agent/month)</label>
-                            <input type="number" id="overseasSalary" value="720" min="0" step="0.01" placeholder="720">
-                        </div>
-                        <div class="expense-item">
-                            <label for="overseasCount">Number of Overseas Agents</label>
-                            <input type="number" id="overseasCount" value="0" min="0" step="1" placeholder="0">
-                        </div>
-                        <div class="expense-item">
-                            <label for="tijSalary">TIJ Agents (per agent/month)</label>
-                            <input type="number" id="tijSalary" value="1300" min="0" step="0.01" placeholder="1300">
-                        </div>
-                        <div class="expense-item">
-                            <label for="tijCount">Number of TIJ Agents</label>
-                            <input type="number" id="tijCount" value="0" min="0" step="1" placeholder="0">
-                        </div>
-                        <div class="expense-item">
-                            <label for="rsaSalary">RSA Agents (per agent/month)</label>
-                            <input type="number" id="rsaSalary" value="1100" min="0" step="0.01" placeholder="1100">
-                        </div>
-                        <div class="expense-item">
-                            <label for="rsaCount">Number of RSA Agents</label>
-                            <input type="number" id="rsaCount" value="0" min="0" step="1" placeholder="0">
-                        </div>
-                    </div>
-                </div>
-            </section>
+  <!-- ================= INPUTS ================= -->
+  <div class="inputs">
 
-            <!-- Revenue Section -->
-            <section class="card">
-                <h2><span class="icon">💵</span> Revenue</h2>
-                <div class="revenue-section">
-                    <div class="revenue-input-mode">
-                        <h3>Input Method</h3>
-                        <div class="radio-group">
-                            <label class="radio-label">
-                                <input type="radio" name="revenueMode" id="modeTotalSales" value="totalSales" checked>
-                                <span>Total Monthly Sales</span>
-                            </label>
-                            <label class="radio-label">
-                                <input type="radio" name="revenueMode" id="modeAgentAverage" value="agentAverage">
-                                <span>Agent Average</span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="revenue-inputs">
-                        <div class="expense-item" id="totalSalesInput">
-                            <label for="totalMonthlySales">Total Monthly Sales</label>
-                            <input type="number" id="totalMonthlySales" value="0" min="0" step="0.01" placeholder="0">
-                        </div>
-                        <div id="agentAverageInput" style="display: none;">
-                            <div class="expense-grid" style="grid-template-columns: repeat(2, 1fr);">
-                                <div class="expense-item">
-                                    <label for="dialerAverageInput">Dialer Average Sales (Overseas Agents)</label>
-                                    <input type="number" id="dialerAverageInput" value="0" min="0" step="0.01" placeholder="0">
-                                </div>
-                                <div class="expense-item">
-                                    <label for="closerAverageInput">Closer Average Sales (TIJ & RSA Agents)</label>
-                                    <input type="number" id="closerAverageInput" value="0" min="0" step="0.01" placeholder="0">
-                                </div>
-                            </div>
-                            <small class="input-help">Total Monthly Sales = (Dialer Average × Overseas Agents) + (Closer Average × (TIJ + RSA Agents))</small>
-                        </div>
-                    </div>
-                    <div class="revenue-deductions">
-                        <h3>Revenue Deductions</h3>
-                        <ul>
-                            <li>CLIENT Remit: <strong>37%</strong></li>
-                            <li>Merchant Reserves: <strong>5%</strong></li>
-                            <li>Merchant Fees: <strong>3%</strong></li>
-                            <li>Net Revenue Rate: <strong>55%</strong></li>
-                        </ul>
-                    </div>
-                </div>
-            </section>
+    <!-- TEAM -->
+    <section class="panel" id="teamPanel">
+      <div class="panel-head">
+        <h2>Team</h2>
+        <span class="panel-meta">Roster as of <strong>Aug 21, 2026</strong> · <button class="link" id="rosterToggle">show initials</button></span>
+      </div>
 
-            <!-- Calculate Button -->
-            <div class="button-group">
-                <button id="calculateBtn" class="btn btn-primary">Calculate</button>
-                <button id="resetBtn" class="btn btn-secondary">Reset</button>
-            </div>
+      <div class="roster" id="rosterBox" hidden>
+        <div><b>TJ closers (9)</b> NXS★ · DXL · AZN · EOG · MLE · MLS · SVJ · MRV · SGG</div>
+        <div><b>TJ dialers (3)</b> WXA · ROP · HEC</div>
+        <div><b>Philippines $4 (6)</b> JAU★ · JQM · RBD · RJB · RXM · ERA</div>
+        <div><b>Philippines $3 (17)</b> AJA · BSB · CGG · CQM · FHM · HRM · JDC · JRC · MBP · MLA · MLH · NJM · RLG · RTM · SJC · WJC · WLT</div>
+        <div><b>Egypt (1)</b> AXE★</div>
+        <div><b>Admin (3)</b> AXS · OXA · GMA</div>
+      </div>
 
-            <!-- Results Section -->
-            <section class="card results-card">
-                <h2><span class="icon">📈</span> Results</h2>
-                <div class="results-grid">
-                    <div class="result-item">
-                        <label>Total Static Expenses</label>
-                        <div class="result-value" id="totalStaticExpenses">$0.00</div>
-                    </div>
-                    <div class="result-item">
-                        <label>Total Variable Expenses</label>
-                        <div class="result-value" id="totalVariableExpenses">$0.00</div>
-                    </div>
-                    <div class="result-item">
-                        <label>Total Agents</label>
-                        <div class="result-value" id="totalAgents">0</div>
-                    </div>
-                    <div class="result-item">
-                        <label>Dialer Average Sales (Overseas)</label>
-                        <div class="result-value" id="dialerAverageSales">$0.00</div>
-                    </div>
-                    <div class="result-item">
-                        <label>Closer Average Sales (TIJ & RSA)</label>
-                        <div class="result-value" id="closerAverageSales">$0.00</div>
-                    </div>
-                    <div class="result-item">
-                        <label>Commission (Dialers: 5% above $2,000 | Closers: 10% above $4,000)</label>
-                        <div class="result-value" id="commission">$0.00</div>
-                    </div>
-                    <div class="result-item">
-                        <label>Calculated Total Monthly Sales</label>
-                        <div class="result-value" id="calculatedTotalSales">$0.00</div>
-                    </div>
-                    <div class="result-item">
-                        <label>Total Expenses</label>
-                        <div class="result-value" id="totalExpenses">$0.00</div>
-                    </div>
-                    <div class="result-item">
-                        <label>Total Remit Amount (37% of Sales)</label>
-                        <div class="result-value" id="totalRemitAmount">$0.00</div>
-                    </div>
-                    <div class="result-item">
-                        <label>Net Revenue (55% of Total Sales)</label>
-                        <div class="result-value" id="netRevenue">$0.00</div>
-                    </div>
-                    <div class="result-item highlight">
-                        <label>Break-Even Sales Amount</label>
-                        <div class="result-value highlight" id="breakEvenSales">$0.00</div>
-                    </div>
-                    <div class="result-item highlight" id="profitItem">
-                        <label>Profit / Loss</label>
-                        <div class="result-value highlight" id="profit">$0.00</div>
-                    </div>
-                </div>
-            </section>
-        </main>
-        
-        <footer>
-            <p>Powered by PHG ⚡</p>
-        </footer>
+      <div class="team-grid">
+        <div class="team-card" data-team="tjCloser">
+          <div class="team-card-head">
+            <span class="team-name">Tijuana Closers</span>
+            <span class="team-flag">MX</span>
+          </div>
+          <div class="stepper">
+            <button type="button" class="step" data-step="-1" aria-label="Remove one">−</button>
+            <input type="number" id="tjCloserCount" value="9" min="0" step="1">
+            <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
+          </div>
+          <div class="team-rates">
+            <label>$/hr <input type="number" id="tjCloserRate" value="7.80" min="0" step="0.05"></label>
+            <label>hrs/mo <input type="number" id="tjCloserHours" value="160" min="0" step="1"></label>
+          </div>
+          <div class="team-cost" id="tjCloserCost">$0</div>
+        </div>
+
+        <div class="team-card" data-team="tjDialer">
+          <div class="team-card-head">
+            <span class="team-name">Tijuana Dialers</span>
+            <span class="team-flag">MX</span>
+          </div>
+          <div class="stepper">
+            <button type="button" class="step" data-step="-1" aria-label="Remove one">−</button>
+            <input type="number" id="tjDialerCount" value="3" min="0" step="1">
+            <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
+          </div>
+          <div class="team-rates">
+            <label>$/hr <input type="number" id="tjDialerRate" value="7.80" min="0" step="0.05"></label>
+            <label>hrs/mo <input type="number" id="tjDialerHours" value="160" min="0" step="1"></label>
+          </div>
+          <div class="team-cost" id="tjDialerCost">$0</div>
+        </div>
+
+        <div class="team-card" data-team="ph4">
+          <div class="team-card-head">
+            <span class="team-name">Philippines · $4 tier</span>
+            <span class="team-flag">PH</span>
+          </div>
+          <div class="stepper">
+            <button type="button" class="step" data-step="-1" aria-label="Remove one">−</button>
+            <input type="number" id="ph4Count" value="6" min="0" step="1">
+            <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
+          </div>
+          <div class="team-rates">
+            <label>$/hr <input type="number" id="ph4Rate" value="4.00" min="0" step="0.05"></label>
+            <label>hrs/mo <input type="number" id="ph4Hours" value="160" min="0" step="1"></label>
+          </div>
+          <div class="team-cost" id="ph4Cost">$0</div>
+        </div>
+
+        <div class="team-card" data-team="ph3">
+          <div class="team-card-head">
+            <span class="team-name">Philippines · $3 tier</span>
+            <span class="team-flag">PH</span>
+          </div>
+          <div class="stepper">
+            <button type="button" class="step" data-step="-1" aria-label="Remove one">−</button>
+            <input type="number" id="ph3Count" value="17" min="0" step="1">
+            <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
+          </div>
+          <div class="team-rates">
+            <label>$/hr <input type="number" id="ph3Rate" value="3.00" min="0" step="0.05"></label>
+            <label>hrs/mo <input type="number" id="ph3Hours" value="160" min="0" step="1"></label>
+          </div>
+          <div class="team-cost" id="ph3Cost">$0</div>
+        </div>
+
+        <div class="team-card" data-team="eg">
+          <div class="team-card-head">
+            <span class="team-name">Egypt</span>
+            <span class="team-flag">EG</span>
+          </div>
+          <div class="stepper">
+            <button type="button" class="step" data-step="-1" aria-label="Remove one">−</button>
+            <input type="number" id="egCount" value="1" min="0" step="1">
+            <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
+          </div>
+          <div class="team-rates">
+            <label>$/hr <input type="number" id="egRate" value="4.00" min="0" step="0.05"></label>
+            <label>hrs/mo <input type="number" id="egHours" value="160" min="0" step="1"></label>
+          </div>
+          <div class="team-cost" id="egCost">$0</div>
+        </div>
+
+        <div class="team-card admin" data-team="admin">
+          <div class="team-card-head">
+            <span class="team-name">Admin seats</span>
+            <span class="team-flag">HQ</span>
+          </div>
+          <div class="stepper">
+            <button type="button" class="step" data-step="-1" aria-label="Remove one">−</button>
+            <input type="number" id="adminCount" value="3" min="0" step="1">
+            <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
+          </div>
+          <p class="team-note">Only drives phone-line counts. Admin pay lives under Overhead.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PHONE LINES -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Phone lines</h2>
+        <span class="panel-meta">Counts auto-fill from the team above. Type over them to override; <button class="link" id="relinkLines">re-link</button> to go back to auto.</span>
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <label for="localLineCost">Local line · $/seat</label>
+          <input type="number" id="localLineCost" value="60" min="0" step="0.01">
+        </div>
+        <div class="field">
+          <label for="localLineCount">Local line seats <small>TJ closers + admin</small></label>
+          <input type="number" id="localLineCount" value="0" min="0" step="1" data-auto="true">
+        </div>
+        <div class="field">
+          <label for="dialerLineCost">Dialer line · $/seat</label>
+          <input type="number" id="dialerLineCost" value="100" min="0" step="0.01">
+        </div>
+        <div class="field">
+          <label for="dialerLineCount">Dialer line seats <small>all agents + admin</small></label>
+          <input type="number" id="dialerLineCount" value="0" min="0" step="1" data-auto="true">
+        </div>
+      </div>
+    </section>
+
+    <!-- OVERHEAD -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Overhead</h2>
+        <span class="panel-meta">Fixed monthly costs. Add or remove rows as vendors change.</span>
+      </div>
+      <div class="expense-list" id="expenseList"></div>
+      <button type="button" class="btn btn-add" id="addExpenseBtn">+ Add expense</button>
+    </section>
+
+    <!-- REVENUE -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Collections</h2>
+        <span class="panel-meta">Gross money collected this month, before client remit.</span>
+      </div>
+
+      <div class="seg" role="tablist">
+        <button type="button" class="seg-btn active" data-mode="total" role="tab">Total collected</button>
+        <button type="button" class="seg-btn" data-mode="avg" role="tab">Per-agent average</button>
+      </div>
+
+      <div id="modeTotal" class="mode-block">
+        <div class="field big">
+          <label for="totalSales">Total collected · month</label>
+          <input type="number" id="totalSales" value="0" min="0" step="100" placeholder="0">
+        </div>
+      </div>
+
+      <div id="modeAvg" class="mode-block" hidden>
+        <div class="field-grid">
+          <div class="field">
+            <label for="closerAvg">Closer average <small>TJ closers</small></label>
+            <input type="number" id="closerAvg" value="0" min="0" step="100">
+          </div>
+          <div class="field">
+            <label for="dialerAvg">Dialer average <small>TJ dialers + overseas</small></label>
+            <input type="number" id="dialerAvg" value="0" min="0" step="100">
+          </div>
+        </div>
+        <p class="help">Total = (closer avg × closers) + (dialer avg × dialers)</p>
+      </div>
+
+      <details class="adv">
+        <summary>Deductions &amp; commission</summary>
+        <div class="field-grid">
+          <div class="field"><label for="remitPct">Client remit %</label><input type="number" id="remitPct" value="37" min="0" max="100" step="0.5"></div>
+          <div class="field"><label for="reservePct">Merchant reserve %</label><input type="number" id="reservePct" value="5" min="0" max="100" step="0.5"></div>
+          <div class="field"><label for="feePct">Merchant fees %</label><input type="number" id="feePct" value="3" min="0" max="100" step="0.5"></div>
+          <div class="field"><label>Net revenue rate</label><div class="readonly" id="netRateDisplay">55%</div></div>
+        </div>
+        <div class="field-grid">
+          <div class="field"><label for="closerCommRate">Closer commission %</label><input type="number" id="closerCommRate" value="10" min="0" step="0.5"></div>
+          <div class="field"><label for="closerCommFloor">…on sales above</label><input type="number" id="closerCommFloor" value="4000" min="0" step="100"></div>
+          <div class="field"><label for="dialerCommRate">Dialer commission %</label><input type="number" id="dialerCommRate" value="5" min="0" step="0.5"></div>
+          <div class="field"><label for="dialerCommFloor">…on sales above</label><input type="number" id="dialerCommFloor" value="2000" min="0" step="100"></div>
+        </div>
+        <p class="help">This is a flat approximation of the OXXO / OS-Bonus tiers. Good enough for planning; not a payroll calculator.</p>
+      </details>
+    </section>
+
+  </div>
+
+  <!-- ================= LEDGER ================= -->
+  <aside class="ledger">
+    <div class="ledger-top">
+      <div class="ledger-label">Profit / loss · month</div>
+      <div class="ledger-profit" id="profit">$0</div>
+      <div class="ledger-sub">
+        <span id="marginLine">0% margin</span>
+        <span class="pin-delta" id="pinDelta" hidden></span>
+      </div>
     </div>
 
-    <script src="script.js"></script>
+    <div class="breakeven">
+      <div class="be-track">
+        <div class="be-fill" id="beFill"></div>
+        <div class="be-marker" id="beMarker"><span>break-even</span></div>
+      </div>
+      <div class="be-row">
+        <span>Collected <b id="beCollected">$0</b></span>
+        <span>Break-even <b id="breakEven">$0</b></span>
+      </div>
+      <div class="be-note" id="beNote">Enter collections to see where you land.</div>
+    </div>
+
+    <table class="stub">
+      <tbody>
+        <tr class="stub-section"><td colspan="2">Revenue</td></tr>
+        <tr><td>Gross collected</td><td id="grossCollected">$0</td></tr>
+        <tr class="minus"><td>Client remit</td><td id="remitAmt">$0</td></tr>
+        <tr class="minus"><td>Reserves + fees</td><td id="feesAmt">$0</td></tr>
+        <tr class="total"><td>Net revenue</td><td id="netRevenue">$0</td></tr>
+
+        <tr class="stub-section"><td colspan="2">Expenses</td></tr>
+        <tr><td>Tijuana payroll</td><td id="tjPayroll">$0</td></tr>
+        <tr><td>Overseas payroll</td><td id="osPayroll">$0</td></tr>
+        <tr><td>Commission</td><td id="commission">$0</td></tr>
+        <tr><td>Phone lines</td><td id="phoneCost">$0</td></tr>
+        <tr><td>Overhead</td><td id="overheadCost">$0</td></tr>
+        <tr class="total"><td>Total expenses</td><td id="totalExpenses">$0</td></tr>
+
+        <tr class="stub-section"><td colspan="2">Per head</td></tr>
+        <tr><td>Agents on the floor</td><td id="totalAgents">0</td></tr>
+        <tr><td id="beCloserAvgLabel">Closer avg needed to break even</td><td id="beCloserAvg">$0</td></tr>
+        <tr><td>Fully-loaded cost / agent</td><td id="costPerAgent">$0</td></tr>
+        <tr><td>Net revenue / agent</td><td id="revPerAgent">$0</td></tr>
+      </tbody>
+    </table>
+
+    <div class="ledger-foot">Powered by PHG ⚡</div>
+  </aside>
+</main>
+
+<div class="toast" id="toast" hidden></div>
+<script src="script.js"></script>
 </body>
 </html>
-
