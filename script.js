@@ -4,42 +4,48 @@
 //
 // HOW TO UPDATE THE ROSTER:
 //   1. Change the numbers in DEFAULTS below (counts, rates, hours)
-//   2. Update the initials list in index.html (#rosterBox)
-//   3. Bump ROSTER_DATE
+//   2. Update the matching value="" attributes + roster date in index.html
+//   3. Bump ROSTER_DATE and STORAGE_KEY
 // ============================================================
 
-const ROSTER_DATE = '2026-08-21';
-const STORAGE_KEY = 'phg-profit-calc-v2';
+const ROSTER_DATE = '2026-09-28';
+const STORAGE_KEY = 'phg-profit-calc-v3'; // bump whenever DEFAULTS change so saved inputs don't mask them
 
-// ---------- Defaults (Aug 2026 roster) ----------
+// Average hours in a full-time month: 40 hrs × 52 weeks ÷ 12
+const MONTH_HOURS = 173.33;
+
+// ---------- Defaults (Sep 2026 roster) ----------
 const DEFAULTS = {
   teams: {
-    tjCloser: { count: 9,  rate: 7.80, hours: 160 },
-    tjDialer: { count: 3,  rate: 7.80, hours: 160 },
-    ph4:      { count: 6,  rate: 4.00, hours: 160 },
-    ph3:      { count: 17, rate: 3.00, hours: 160 },
-    eg:       { count: 1,  rate: 4.00, hours: 160 },
+    tjCloser: { count: 10, rate: 7.80, hours: MONTH_HOURS },
+    tjDialer: { count: 2,  rate: 7.80, hours: MONTH_HOURS },
+    ph4:      { count: 6,  rate: 4.00, hours: MONTH_HOURS },
+    ph3:      { count: 25, rate: 3.00, hours: MONTH_HOURS },
+    eg:       { count: 1,  rate: 4.00, hours: MONTH_HOURS },
   },
   adminCount: 3,
-  localLineCost: 60,
-  dialerLineCost: 100,
+  // USTN per-seat pricing (invoice #19137, Sep 2026)
+  localLineCost: 60,   // IP unit / extension — TJ closers + admin
+  dialerLineCost: 100, // ACE dialer license — TJ dialers + Philippines + Egypt
   expenses: [
-    { name: 'Click to Dial · local presence', amount: 200 },
-    { name: 'ACE predictive dialer',          amount: 1200 },
-    { name: 'CAD call report',                amount: 140 },
-    { name: 'In-call recordings',             amount: 70 },
-    { name: 'Broadcast calls',                amount: 1600 },
-    { name: 'SimpliCity CRM',                 amount: 2000 },
-    { name: 'IDI batching',                   amount: 6250 },
-    { name: 'Admin payroll',                  amount: 12000 },
+    { name: 'Local presence pool · Click to Dial', amount: 220 },
+    { name: 'ACE predictive dialer platform',      amount: 1200 },
+    { name: 'CAD call report',                     amount: 140 },
+    { name: 'Recordings (10k min + 90-day archive)', amount: 70 },
+    { name: 'DUNK groups (2)',                     amount: 200 },
+    { name: 'Broadcast calls',                     amount: 1600 },
+    { name: 'SimpliCity CRM',                      amount: 2000 },
+    { name: 'IDI batching',                        amount: 5000 },
+    { name: 'Admin payroll',                       amount: 12000 },
   ],
   mode: 'total',
   totalSales: 0,
   closerAvg: 0,
   dialerAvg: 0,
-  remitPct: 37, reservePct: 5, feePct: 3,
-  closerCommRate: 10, closerCommFloor: 4000,
-  dialerCommRate: 5,  dialerCommFloor: 2000,
+  remitPct: 20, reservePct: 5, feePct: 3,
+  // Commission off by default — type rates in to model a plan
+  closerCommRate: 0, closerCommFloor: 0,
+  dialerCommRate: 0, dialerCommFloor: 0,
 };
 
 const TEAM_IDS = Object.keys(DEFAULTS.teams);
@@ -47,6 +53,7 @@ const $ = (id) => document.getElementById(id);
 
 // ---------- Helpers ----------
 function money(n, cents = false) {
+  if (n === Infinity) return 'n/a';
   return new Intl.NumberFormat('en-US', {
     style: 'currency', currency: 'USD',
     minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0,
@@ -80,13 +87,26 @@ function readExpenses() {
 }
 
 // ---------- Phone line auto-fill ----------
+// Each seat gets ONE line: TJ closers + admin on the $60 local line,
+// everyone else (TJ dialers, Philippines, Egypt) on the $100 dialer line.
 function autoLines() {
   const closers = int('tjCloserCount');
   const agents  = TEAM_IDS.reduce((s, t) => s + int(t + 'Count'), 0);
   const admin   = int('adminCount');
   const local = $('localLineCount'), dialer = $('dialerLineCount');
   if (local.dataset.auto === 'true')  local.value  = closers + admin;
-  if (dialer.dataset.auto === 'true') dialer.value = agents + admin;
+  if (dialer.dataset.auto === 'true') dialer.value = agents - closers;
+}
+
+// Smallest x ≥ 0 where f(x) ≥ 0 (f is increasing). Infinity if it never gets there
+// — e.g. commission eats more of each dollar than the business keeps.
+function solve(f) {
+  if (f(0) >= 0) return 0;
+  let hi = 1000;
+  while (f(hi) < 0) { hi *= 2; if (hi > 1e10) return Infinity; }
+  let lo = 0;
+  for (let i = 0; i < 60; i++) { const mid = (lo + hi) / 2; if (f(mid) >= 0) hi = mid; else lo = mid; }
+  return hi;
 }
 
 // ---------- Core calculation ----------
@@ -127,9 +147,10 @@ function compute() {
   // Commission (flat approximation)
   const cRate = num('closerCommRate') / 100, cFloor = num('closerCommFloor');
   const dRate = num('dialerCommRate') / 100, dFloor = num('dialerCommFloor');
-  const commission =
-    (closerAvg > cFloor ? (closerAvg - cFloor) * cRate * closers : 0) +
-    (dialerAvg > dFloor ? (dialerAvg - dFloor) * dRate * dialers : 0);
+  const commAt = (cAvg, dAvg) =>
+    (cAvg > cFloor ? (cAvg - cFloor) * cRate * closers : 0) +
+    (dAvg > dFloor ? (dAvg - dFloor) * dRate * dialers : 0);
+  const commission = commAt(closerAvg, dialerAvg);
 
   // Phone + overhead
   const phone = num('localLineCost') * int('localLineCount') + num('dialerLineCost') * int('dialerLineCount');
@@ -139,9 +160,19 @@ function compute() {
   const profit = netRev - expenses;
   const margin = netRev ? profit / netRev * 100 : 0;
 
-  // Break-even: commission depends on sales, so solve the fixed part first
+  // Break-even includes commission. Commission grows with sales, so solve
+  // numerically: find the smallest gross where net revenue covers everything.
   const fixed = tjPayroll + osPayroll + phone + overhead;
-  const breakEven = netRate > 0 ? fixed / netRate : 0;
+  // Averages as a function of gross, keeping the current closer/dialer mix
+  const cShare = mode === 'avg' && gross > 0 ? closerAvg / gross : (agents ? 1 / agents : 0);
+  const dShare = mode === 'avg' && gross > 0 ? dialerAvg / gross : (agents ? 1 / agents : 0);
+  const splitAt = mode === 'avg' && gross === 0
+    ? (g) => [closers ? g / (closers + dialers) : 0, dialers ? g / (closers + dialers) : 0]
+    : (g) => [g * cShare, g * dShare];
+  const breakEven = solve(g => g * netRate - fixed - commAt(...splitAt(g)));
+  // Closer avg needed to break even, holding the dialer avg where it is
+  const beCloser = closers
+    ? solve(c => (c * closers + dialerAvg * dialers) * netRate - fixed - commAt(c, dialerAvg)) : 0;
 
   return {
     t, agents, closers, dialers, gross, closerAvg, dialerAvg,
@@ -150,9 +181,7 @@ function compute() {
     costPerAgent: agents ? expenses / agents : 0,
     revPerAgent:  agents ? netRev / agents : 0,
     // Per-agent target: in avg mode, what each closer needs given the dialer avg; otherwise an even split
-    beCloserAvg:  mode === 'avg'
-      ? (closers ? Math.max(0, breakEven - dialerAvg * dialers) / closers : 0)
-      : (agents ? breakEven / agents : 0),
+    beCloserAvg:  mode === 'avg' ? beCloser : (agents && isFinite(breakEven) ? breakEven / agents : Infinity),
     mode,
   };
 }
@@ -174,11 +203,13 @@ function render(r) {
   $('beCollected').textContent = money(r.gross);
   $('breakEven').textContent = money(r.breakEven);
   const gap = r.gross - r.breakEven;
-  $('beNote').textContent = !r.gross
+  $('beNote').textContent = r.breakEven === Infinity
+    ? 'Commission rates are higher than what the business keeps per dollar — this never breaks even.'
+    : !r.gross
     ? 'Enter collections to see where you land.'
     : gap >= 0
       ? `${money(gap)} above break-even (${(ratio * 100).toFixed(0)}% of target).`
-      : `${money(-gap)} short of break-even — that's ${r.closers ? money(-gap / r.closers) + ' more per closer' : 'the gap'}.`;
+      : `${money(-gap)} short of break-even — that's ${r.closers ? money(r.mode === 'avg' ? r.beCloserAvg - r.closerAvg : -gap / r.closers) + ' more per closer' : 'the gap'}.`;
 
   $('grossCollected').textContent = money(r.gross);
   $('remitAmt').textContent = money(r.remitAmt);
@@ -314,12 +345,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Expenses
   $('addExpenseBtn').addEventListener('click', () => { addExpenseRow(); recalc(); $('expenseList').lastElementChild.querySelector('input').focus(); });
 
-  // Roster toggle
-  $('rosterToggle').addEventListener('click', () => {
-    const box = $('rosterBox'); box.hidden = !box.hidden;
-    $('rosterToggle').textContent = box.hidden ? 'show initials' : 'hide initials';
-  });
-
   // Pin / copy / reset
   $('pinBtn').addEventListener('click', () => {
     const r = compute();
@@ -332,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
     catch (e) { toast('Copy failed — select the ledger manually'); }
   });
   $('resetBtn').addEventListener('click', () => {
-    if (!confirm('Reset everything to the Aug 2026 defaults?')) return;
+    if (!confirm('Reset everything to the Sep 2026 defaults?')) return;
     pinned = null; $('pinBtn').textContent = 'Pin scenario';
     applyDefaults(); recalc(); toast('Reset to defaults');
   });

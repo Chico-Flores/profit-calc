@@ -20,7 +20,7 @@
     <div class="topbar-actions">
       <button id="pinBtn" class="btn btn-ghost" title="Save the current numbers as a baseline to compare against">Pin scenario</button>
       <button id="copyBtn" class="btn btn-ghost" title="Copy a plain-text summary">Copy summary</button>
-      <button id="resetBtn" class="btn btn-ghost danger" title="Restore the Aug 2026 defaults">Reset</button>
+      <button id="resetBtn" class="btn btn-ghost danger" title="Restore the Sep 2026 defaults">Reset</button>
     </div>
   </div>
 </header>
@@ -34,16 +34,7 @@
     <section class="panel" id="teamPanel">
       <div class="panel-head">
         <h2>Team</h2>
-        <span class="panel-meta">Roster as of <strong>Aug 21, 2026</strong> · <button class="link" id="rosterToggle">show initials</button></span>
-      </div>
-
-      <div class="roster" id="rosterBox" hidden>
-        <div><b>TJ closers (9)</b> NXS★ · DXL · AZN · EOG · MLE · MLS · SVJ · MRV · SGG</div>
-        <div><b>TJ dialers (3)</b> WXA · ROP · HEC</div>
-        <div><b>Philippines $4 (6)</b> JAU★ · JQM · RBD · RJB · RXM · ERA</div>
-        <div><b>Philippines $3 (17)</b> AJA · BSB · CGG · CQM · FHM · HRM · JDC · JRC · MBP · MLA · MLH · NJM · RLG · RTM · SJC · WJC · WLT</div>
-        <div><b>Egypt (1)</b> AXE★</div>
-        <div><b>Admin (3)</b> AXS · OXA · GMA</div>
+        <span class="panel-meta">Roster as of <strong>Sep 28, 2026</strong> · 173.33 hrs/mo = 40 hrs × 52 wks ÷ 12</span>
       </div>
 
       <div class="team-grid">
@@ -54,12 +45,12 @@
           </div>
           <div class="stepper">
             <button type="button" class="step" data-step="-1" aria-label="Remove one">−</button>
-            <input type="number" id="tjCloserCount" value="9" min="0" step="1">
+            <input type="number" id="tjCloserCount" value="10" min="0" step="1">
             <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
           </div>
           <div class="team-rates">
             <label>$/hr <input type="number" id="tjCloserRate" value="7.80" min="0" step="0.05"></label>
-            <label>hrs/mo <input type="number" id="tjCloserHours" value="160" min="0" step="1"></label>
+            <label>hrs/mo <input type="number" id="tjCloserHours" value="173.33" min="0" step="any"></label>
           </div>
           <div class="team-cost" id="tjCloserCost">$0</div>
         </div>
@@ -71,12 +62,12 @@
           </div>
           <div class="stepper">
             <button type="button" class="step" data-step="-1" aria-label="Remove one">−</button>
-            <input type="number" id="tjDialerCount" value="3" min="0" step="1">
+            <input type="number" id="tjDialerCount" value="2" min="0" step="1">
             <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
           </div>
           <div class="team-rates">
             <label>$/hr <input type="number" id="tjDialerRate" value="7.80" min="0" step="0.05"></label>
-            <label>hrs/mo <input type="number" id="tjDialerHours" value="160" min="0" step="1"></label>
+            <label>hrs/mo <input type="number" id="tjDialerHours" value="173.33" min="0" step="any"></label>
           </div>
           <div class="team-cost" id="tjDialerCost">$0</div>
         </div>
@@ -93,7 +84,7 @@
           </div>
           <div class="team-rates">
             <label>$/hr <input type="number" id="ph4Rate" value="4.00" min="0" step="0.05"></label>
-            <label>hrs/mo <input type="number" id="ph4Hours" value="160" min="0" step="1"></label>
+            <label>hrs/mo <input type="number" id="ph4Hours" value="173.33" min="0" step="any"></label>
           </div>
           <div class="team-cost" id="ph4Cost">$0</div>
         </div>
@@ -105,12 +96,12 @@
           </div>
           <div class="stepper">
             <button type="button" class="step" data-step="-1" aria-label="Remove one">−</button>
-            <input type="number" id="ph3Count" value="17" min="0" step="1">
+            <input type="number" id="ph3Count" value="25" min="0" step="1">
             <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
           </div>
           <div class="team-rates">
             <label>$/hr <input type="number" id="ph3Rate" value="3.00" min="0" step="0.05"></label>
-            <label>hrs/mo <input type="number" id="ph3Hours" value="160" min="0" step="1"></label>
+            <label>hrs/mo <input type="number" id="ph3Hours" value="173.33" min="0" step="any"></label>
           </div>
           <div class="team-cost" id="ph3Cost">$0</div>
         </div>
@@ -127,7 +118,7 @@
           </div>
           <div class="team-rates">
             <label>$/hr <input type="number" id="egRate" value="4.00" min="0" step="0.05"></label>
-            <label>hrs/mo <input type="number" id="egHours" value="160" min="0" step="1"></label>
+            <label>hrs/mo <input type="number" id="egHours" value="173.33" min="0" step="any"></label>
           </div>
           <div class="team-cost" id="egCost">$0</div>
         </div>
@@ -142,7 +133,7 @@
             <input type="number" id="adminCount" value="3" min="0" step="1">
             <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
           </div>
-          <p class="team-note">Only drives phone-line counts. Admin pay lives under Overhead.</p>
+          <p class="team-note">Only drives local-line count. Admin pay lives under Overhead.</p>
         </div>
       </div>
     </section>
@@ -151,11 +142,11 @@
     <section class="panel">
       <div class="panel-head">
         <h2>Phone lines</h2>
-        <span class="panel-meta">Counts auto-fill from the team above. Type over them to override; <button class="link" id="relinkLines">re-link</button> to go back to auto.</span>
+        <span class="panel-meta">One line per seat. Counts auto-fill from the team above. Type over them to override; <button class="link" id="relinkLines">re-link</button> to go back to auto.</span>
       </div>
       <div class="field-grid">
         <div class="field">
-          <label for="localLineCost">Local line · $/seat</label>
+          <label for="localLineCost">Local line (IP extension) · $/seat</label>
           <input type="number" id="localLineCost" value="60" min="0" step="0.01">
         </div>
         <div class="field">
@@ -163,11 +154,11 @@
           <input type="number" id="localLineCount" value="0" min="0" step="1" data-auto="true">
         </div>
         <div class="field">
-          <label for="dialerLineCost">Dialer line · $/seat</label>
+          <label for="dialerLineCost">Dialer license · $/seat</label>
           <input type="number" id="dialerLineCost" value="100" min="0" step="0.01">
         </div>
         <div class="field">
-          <label for="dialerLineCount">Dialer line seats <small>all agents + admin</small></label>
+          <label for="dialerLineCount">Dialer line seats <small>TJ dialers + Philippines + Egypt</small></label>
           <input type="number" id="dialerLineCount" value="0" min="0" step="1" data-auto="true">
         </div>
       </div>
@@ -219,18 +210,18 @@
       <details class="adv">
         <summary>Deductions &amp; commission</summary>
         <div class="field-grid">
-          <div class="field"><label for="remitPct">Client remit %</label><input type="number" id="remitPct" value="37" min="0" max="100" step="0.5"></div>
+          <div class="field"><label for="remitPct">Client remit %</label><input type="number" id="remitPct" value="20" min="0" max="100" step="0.5"></div>
           <div class="field"><label for="reservePct">Merchant reserve %</label><input type="number" id="reservePct" value="5" min="0" max="100" step="0.5"></div>
           <div class="field"><label for="feePct">Merchant fees %</label><input type="number" id="feePct" value="3" min="0" max="100" step="0.5"></div>
-          <div class="field"><label>Net revenue rate</label><div class="readonly" id="netRateDisplay">55%</div></div>
+          <div class="field"><label>Net revenue rate</label><div class="readonly" id="netRateDisplay">72%</div></div>
         </div>
         <div class="field-grid">
-          <div class="field"><label for="closerCommRate">Closer commission %</label><input type="number" id="closerCommRate" value="10" min="0" step="0.5"></div>
-          <div class="field"><label for="closerCommFloor">…on sales above</label><input type="number" id="closerCommFloor" value="4000" min="0" step="100"></div>
-          <div class="field"><label for="dialerCommRate">Dialer commission %</label><input type="number" id="dialerCommRate" value="5" min="0" step="0.5"></div>
-          <div class="field"><label for="dialerCommFloor">…on sales above</label><input type="number" id="dialerCommFloor" value="2000" min="0" step="100"></div>
+          <div class="field"><label for="closerCommRate">Closer commission %</label><input type="number" id="closerCommRate" value="0" min="0" step="0.5"></div>
+          <div class="field"><label for="closerCommFloor">…on sales above</label><input type="number" id="closerCommFloor" value="0" min="0" step="100"></div>
+          <div class="field"><label for="dialerCommRate">Dialer commission %</label><input type="number" id="dialerCommRate" value="0" min="0" step="0.5"></div>
+          <div class="field"><label for="dialerCommFloor">…on sales above</label><input type="number" id="dialerCommFloor" value="0" min="0" step="100"></div>
         </div>
-        <p class="help">This is a flat approximation of the OXXO / OS-Bonus tiers. Good enough for planning; not a payroll calculator.</p>
+        <p class="help">Commission is off (0%) by default — type in a rate and floor to model a plan. Dialer commission applies to TJ dialers + overseas. Break-even includes commission.</p>
       </details>
     </section>
 
