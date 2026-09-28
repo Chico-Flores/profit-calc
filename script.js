@@ -153,7 +153,9 @@ function compute() {
   const commission = commAt(closerAvg, dialerAvg);
 
   // Phone + overhead
-  const phone = num('localLineCost') * int('localLineCount') + num('dialerLineCost') * int('dialerLineCount');
+  const localPhone  = num('localLineCost') * int('localLineCount');
+  const dialerPhone = num('dialerLineCost') * int('dialerLineCount');
+  const phone = localPhone + dialerPhone;
   const overhead = readExpenses().reduce((s, e) => s + e.amount, 0);
 
   const expenses = tjPayroll + osPayroll + commission + phone + overhead;
@@ -174,10 +176,16 @@ function compute() {
   const beCloser = closers
     ? solve(c => (c * closers + dialerAvg * dialers) * netRate - fixed - commAt(c, dialerAvg)) : 0;
 
+  // Same P&L at any gross (keeps today's team, costs and closer/dialer mix)
+  const at = (g) => {
+    const net = g * netRate, costs = fixed + commAt(...splitAt(g)), pr = net - costs;
+    return { gross: g, net, costs, profit: pr, margin: net ? pr / net * 100 : 0, perAgent: agents ? g / agents : 0 };
+  };
+
   return {
     t, agents, closers, dialers, gross, closerAvg, dialerAvg,
     remitAmt, feesAmt, netRev, netRate, tjPayroll, osPayroll, commission, phone, overhead,
-    expenses, profit, margin, breakEven, fixed,
+    localPhone, dialerPhone, expenses, profit, margin, breakEven, fixed, at,
     costPerAgent: agents ? expenses / agents : 0,
     revPerAgent:  agents ? netRev / agents : 0,
     // Per-agent target: in avg mode, what each closer needs given the dialer avg; otherwise an even split
@@ -228,6 +236,23 @@ function render(r) {
   $('revPerAgent').textContent = money(r.revPerAgent);
   $('netRateDisplay').textContent = (r.netRate * 100).toFixed(1) + '%';
 
+  // Summary strip
+  $('kpiCosts').textContent = money(r.expenses);
+  $('kpiBreakEven').textContent = money(r.breakEven);
+  $('kpiKeep').textContent = money(r.netRate, true);
+  $('kpiHeads').textContent = r.agents;
+  $('kpiHeadsSub').textContent = `${r.closers} closers · ${r.dialers} dialers + ${int('adminCount')} admin`;
+
+  $('localLineTotal').textContent = money(r.localPhone);
+  $('dialerLineTotal').textContent = money(r.dialerPhone);
+  $('overheadTotal').textContent = money(r.overhead);
+
+  renderCostMix(r);
+  renderWhatIf(r);
+
+  document.querySelectorAll('.chip').forEach(c =>
+    c.classList.toggle('active', r.mode === 'total' && +c.dataset.amount === r.gross));
+
   const pd = $('pinDelta');
   if (pinned) {
     const d = r.profit - pinned.profit;
@@ -235,6 +260,52 @@ function render(r) {
     pd.textContent = `${d >= 0 ? '+' : '−'}${money(Math.abs(d))} vs pinned`;
     pd.className = 'pin-delta ' + (d > 0 ? 'pos' : d < 0 ? 'neg' : '');
   } else pd.hidden = true;
+}
+
+// Stacked bar of where monthly costs go (colors are validated series slots 1–5)
+function renderCostMix(r) {
+  const parts = [
+    { name: 'Tijuana payroll', v: r.tjPayroll },
+    { name: 'Overseas payroll', v: r.osPayroll },
+    { name: 'Phone lines', v: r.phone },
+    { name: 'Overhead', v: r.overhead },
+    { name: 'Commission', v: r.commission },
+  ];
+  const total = parts.reduce((s, p) => s + p.v, 0) || 1;
+  $('costBar').innerHTML = parts.map((p, i) => p.v > 0
+    ? `<span style="flex-grow:${p.v};background:var(--s${i + 1})" title="${p.name}: ${money(p.v)} (${(p.v / total * 100).toFixed(0)}%)"></span>`
+    : '').join('');
+  $('costLegend').innerHTML = parts.filter(p => p.v > 0 || p.name !== 'Commission').map(p => {
+    const i = parts.indexOf(p) + 1;
+    return `<li><i style="background:var(--s${i})"></i><span class="nm">${p.name}</span><b>${(p.v / total * 100).toFixed(0)}%</b></li>`;
+  }).join('');
+}
+
+// Profit at a ladder of collection levels around break-even (+ current)
+function renderWhatIf(r) {
+  const step = 25000;
+  const be = isFinite(r.breakEven) ? r.breakEven : 0;
+  const start = Math.max(step, Math.floor(be / step) * step);
+  const levels = new Set([start, start + step, start + 2 * step, start + 3 * step, start + 4 * step, start + 6 * step]);
+  const rows = [...levels].map(g => ({ ...r.at(g), kind: '' }));
+  if (be) rows.push({ ...r.at(be), kind: 'be' });
+  if (r.gross && ![...levels].includes(Math.round(r.gross))) rows.push({ ...r.at(r.gross), kind: 'current' });
+  rows.sort((a, b) => a.gross - b.gross);
+  $('whatifBody').innerHTML = rows.map(x => {
+    const cls = x.kind === 'be' ? 'is-be' : (x.kind === 'current' || (r.gross && Math.round(x.gross) === Math.round(r.gross))) ? 'is-current' : '';
+    const tag = x.kind === 'be' ? '<span class="tag">break-even</span>' : cls === 'is-current' ? '<span class="tag">now</span>' : '';
+    const pc = x.profit > 0.5 ? 'pos' : x.profit < -0.5 ? 'neg' : '';
+    return `<tr class="${cls}" data-gross="${Math.round(x.gross)}" tabindex="0">
+      <td>${money(x.gross)}${tag}</td><td>${money(x.perAgent)}</td><td class="opt">${money(x.net)}</td>
+      <td class="opt">${money(x.costs)}</td><td class="${pc}">${money(x.profit)}</td><td>${x.margin.toFixed(1)}%</td></tr>`;
+  }).join('');
+}
+
+// Jump to "Total collected" mode with a given amount
+function useTotal(amount) {
+  setMode('total');
+  $('totalSales').value = amount;
+  recalc();
 }
 
 function recalc() {
@@ -285,6 +356,11 @@ function setMode(mode) {
   document.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
   $('modeTotal').hidden = mode !== 'total';
   $('modeAvg').hidden = mode !== 'avg';
+}
+
+function setPinLabel() {
+  $('pinBtn').querySelector('span').textContent = pinned ? 'Unpin' : 'Pin scenario';
+  $('pinBtn').classList.toggle('is-on', !!pinned);
 }
 
 // ---------- Toast ----------
@@ -342,14 +418,21 @@ document.addEventListener('DOMContentLoaded', () => {
   // Mode
   document.querySelectorAll('.seg-btn').forEach(b => b.addEventListener('click', () => { setMode(b.dataset.mode); recalc(); }));
 
+  // Quick amounts + what-if rows
+  document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => useTotal(c.dataset.amount)));
+  const pickRow = (e) => { const tr = e.target.closest('tr[data-gross]'); if (tr) useTotal(tr.dataset.gross); };
+  $('whatifBody').addEventListener('click', pickRow);
+  $('whatifBody').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickRow(e); } });
+
   // Expenses
   $('addExpenseBtn').addEventListener('click', () => { addExpenseRow(); recalc(); $('expenseList').lastElementChild.querySelector('input').focus(); });
 
   // Pin / copy / reset
   $('pinBtn').addEventListener('click', () => {
     const r = compute();
-    if (pinned) { pinned = null; $('pinBtn').textContent = 'Pin scenario'; toast('Pin cleared'); }
-    else { pinned = r; $('pinBtn').textContent = 'Unpin'; toast(`Pinned ${money(r.profit)} as baseline`); }
+    if (pinned) { pinned = null; toast('Pin cleared'); }
+    else { pinned = r; toast(`Pinned ${money(r.profit)} as baseline`); }
+    setPinLabel();
     recalc();
   });
   $('copyBtn').addEventListener('click', async () => {
@@ -358,7 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   $('resetBtn').addEventListener('click', () => {
     if (!confirm('Reset everything to the Sep 2026 defaults?')) return;
-    pinned = null; $('pinBtn').textContent = 'Pin scenario';
+    pinned = null; setPinLabel();
     applyDefaults(); recalc(); toast('Reset to defaults');
   });
 

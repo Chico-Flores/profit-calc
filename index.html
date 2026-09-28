@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
   <title>PHG Profit Calculator</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -12,173 +14,67 @@
 
 <header class="topbar">
   <div class="topbar-inner">
-    <img src="https://storage.googleapis.com/msgsndr/7AsSgaSl1IdPndNHqKfs/media/691264f7b0326a15ff5d7cd7.png" alt="PHG" class="logo">
-    <div class="topbar-title">
-      <h1>Profit Calculator</h1>
-      <p>Monthly P&amp;L · break-even · what-if. Everything recalculates as you type.</p>
+    <div class="brand">
+      <img src="https://storage.googleapis.com/msgsndr/7AsSgaSl1IdPndNHqKfs/media/691264f7b0326a15ff5d7cd7.png" alt="PHG" class="logo">
+      <div class="brand-text">
+        <h1>Profit Calculator</h1>
+        <p>Monthly P&amp;L for Powerhouze Group · updates as you type</p>
+      </div>
     </div>
     <div class="topbar-actions">
-      <button id="pinBtn" class="btn btn-ghost" title="Save the current numbers as a baseline to compare against">Pin scenario</button>
-      <button id="copyBtn" class="btn btn-ghost" title="Copy a plain-text summary">Copy summary</button>
-      <button id="resetBtn" class="btn btn-ghost danger" title="Restore the Sep 2026 defaults">Reset</button>
+      <button id="pinBtn" class="btn" title="Save the current numbers as a baseline to compare against">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 2h6l-1 5 3 3H5l3-3-1-5Zm3 8v8"/></svg>
+        <span>Pin scenario</span>
+      </button>
+      <button id="copyBtn" class="btn" title="Copy a plain-text summary">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="6" y="6" width="11" height="11" rx="2"/><path d="M3 13V4a1 1 0 0 1 1-1h9"/></svg>
+        <span>Copy summary</span>
+      </button>
+      <button id="resetBtn" class="btn btn-danger" title="Restore the Sep 2026 defaults">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10a7 7 0 1 0 2-5M3 3v4h4"/></svg>
+        <span>Reset</span>
+      </button>
     </div>
   </div>
 </header>
+
+<!-- ================= SUMMARY STRIP ================= -->
+<section class="kpis" aria-label="Monthly summary">
+  <div class="kpi">
+    <span class="kpi-label">Monthly costs</span>
+    <span class="kpi-value" id="kpiCosts">$0</span>
+    <span class="kpi-sub">payroll + phones + overhead</span>
+  </div>
+  <div class="kpi">
+    <span class="kpi-label">Break-even</span>
+    <span class="kpi-value" id="kpiBreakEven">$0</span>
+    <span class="kpi-sub">gross collected to cover costs</span>
+  </div>
+  <div class="kpi">
+    <span class="kpi-label">You keep per $1</span>
+    <span class="kpi-value" id="kpiKeep">$0.00</span>
+    <span class="kpi-sub">after remit, reserve &amp; fees</span>
+  </div>
+  <div class="kpi">
+    <span class="kpi-label">Headcount</span>
+    <span class="kpi-value" id="kpiHeads">0</span>
+    <span class="kpi-sub" id="kpiHeadsSub">agents on the floor</span>
+  </div>
+</section>
 
 <main class="layout">
 
   <!-- ================= INPUTS ================= -->
   <div class="inputs">
 
-    <!-- TEAM -->
-    <section class="panel" id="teamPanel">
-      <div class="panel-head">
-        <h2>Team</h2>
-        <span class="panel-meta">Roster as of <strong>Sep 28, 2026</strong> · 173.33 hrs/mo = 40 hrs × 52 wks ÷ 12</span>
-      </div>
-
-      <div class="team-grid">
-        <div class="team-card" data-team="tjCloser">
-          <div class="team-card-head">
-            <span class="team-name">Tijuana Closers</span>
-            <span class="team-flag">MX</span>
-          </div>
-          <div class="stepper">
-            <button type="button" class="step" data-step="-1" aria-label="Remove one">−</button>
-            <input type="number" id="tjCloserCount" value="10" min="0" step="1">
-            <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
-          </div>
-          <div class="team-rates">
-            <label>$/hr <input type="number" id="tjCloserRate" value="7.80" min="0" step="0.05"></label>
-            <label>hrs/mo <input type="number" id="tjCloserHours" value="173.33" min="0" step="any"></label>
-          </div>
-          <div class="team-cost" id="tjCloserCost">$0</div>
-        </div>
-
-        <div class="team-card" data-team="tjDialer">
-          <div class="team-card-head">
-            <span class="team-name">Tijuana Dialers</span>
-            <span class="team-flag">MX</span>
-          </div>
-          <div class="stepper">
-            <button type="button" class="step" data-step="-1" aria-label="Remove one">−</button>
-            <input type="number" id="tjDialerCount" value="2" min="0" step="1">
-            <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
-          </div>
-          <div class="team-rates">
-            <label>$/hr <input type="number" id="tjDialerRate" value="7.80" min="0" step="0.05"></label>
-            <label>hrs/mo <input type="number" id="tjDialerHours" value="173.33" min="0" step="any"></label>
-          </div>
-          <div class="team-cost" id="tjDialerCost">$0</div>
-        </div>
-
-        <div class="team-card" data-team="ph4">
-          <div class="team-card-head">
-            <span class="team-name">Philippines · $4 tier</span>
-            <span class="team-flag">PH</span>
-          </div>
-          <div class="stepper">
-            <button type="button" class="step" data-step="-1" aria-label="Remove one">−</button>
-            <input type="number" id="ph4Count" value="6" min="0" step="1">
-            <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
-          </div>
-          <div class="team-rates">
-            <label>$/hr <input type="number" id="ph4Rate" value="4.00" min="0" step="0.05"></label>
-            <label>hrs/mo <input type="number" id="ph4Hours" value="173.33" min="0" step="any"></label>
-          </div>
-          <div class="team-cost" id="ph4Cost">$0</div>
-        </div>
-
-        <div class="team-card" data-team="ph3">
-          <div class="team-card-head">
-            <span class="team-name">Philippines · $3 tier</span>
-            <span class="team-flag">PH</span>
-          </div>
-          <div class="stepper">
-            <button type="button" class="step" data-step="-1" aria-label="Remove one">−</button>
-            <input type="number" id="ph3Count" value="25" min="0" step="1">
-            <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
-          </div>
-          <div class="team-rates">
-            <label>$/hr <input type="number" id="ph3Rate" value="3.00" min="0" step="0.05"></label>
-            <label>hrs/mo <input type="number" id="ph3Hours" value="173.33" min="0" step="any"></label>
-          </div>
-          <div class="team-cost" id="ph3Cost">$0</div>
-        </div>
-
-        <div class="team-card" data-team="eg">
-          <div class="team-card-head">
-            <span class="team-name">Egypt</span>
-            <span class="team-flag">EG</span>
-          </div>
-          <div class="stepper">
-            <button type="button" class="step" data-step="-1" aria-label="Remove one">−</button>
-            <input type="number" id="egCount" value="1" min="0" step="1">
-            <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
-          </div>
-          <div class="team-rates">
-            <label>$/hr <input type="number" id="egRate" value="4.00" min="0" step="0.05"></label>
-            <label>hrs/mo <input type="number" id="egHours" value="173.33" min="0" step="any"></label>
-          </div>
-          <div class="team-cost" id="egCost">$0</div>
-        </div>
-
-        <div class="team-card admin" data-team="admin">
-          <div class="team-card-head">
-            <span class="team-name">Admin seats</span>
-            <span class="team-flag">HQ</span>
-          </div>
-          <div class="stepper">
-            <button type="button" class="step" data-step="-1" aria-label="Remove one">−</button>
-            <input type="number" id="adminCount" value="3" min="0" step="1">
-            <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
-          </div>
-          <p class="team-note">Only drives local-line count. Admin pay lives under Overhead.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- PHONE LINES -->
+    <!-- 1. COLLECTIONS -->
     <section class="panel">
       <div class="panel-head">
-        <h2>Phone lines</h2>
-        <span class="panel-meta">One line per seat. Counts auto-fill from the team above. Type over them to override; <button class="link" id="relinkLines">re-link</button> to go back to auto.</span>
-      </div>
-      <div class="field-grid">
-        <div class="field">
-          <label for="localLineCost">Local line (IP extension) · $/seat</label>
-          <input type="number" id="localLineCost" value="60" min="0" step="0.01">
+        <span class="step-num">1</span>
+        <div>
+          <h2>Collections</h2>
+          <p class="panel-meta">Gross money collected in a month, before client remit.</p>
         </div>
-        <div class="field">
-          <label for="localLineCount">Local line seats <small>TJ closers + admin</small></label>
-          <input type="number" id="localLineCount" value="0" min="0" step="1" data-auto="true">
-        </div>
-        <div class="field">
-          <label for="dialerLineCost">Dialer license · $/seat</label>
-          <input type="number" id="dialerLineCost" value="100" min="0" step="0.01">
-        </div>
-        <div class="field">
-          <label for="dialerLineCount">Dialer line seats <small>TJ dialers + Philippines + Egypt</small></label>
-          <input type="number" id="dialerLineCount" value="0" min="0" step="1" data-auto="true">
-        </div>
-      </div>
-    </section>
-
-    <!-- OVERHEAD -->
-    <section class="panel">
-      <div class="panel-head">
-        <h2>Overhead</h2>
-        <span class="panel-meta">Fixed monthly costs. Add or remove rows as vendors change.</span>
-      </div>
-      <div class="expense-list" id="expenseList"></div>
-      <button type="button" class="btn btn-add" id="addExpenseBtn">+ Add expense</button>
-    </section>
-
-    <!-- REVENUE -->
-    <section class="panel">
-      <div class="panel-head">
-        <h2>Collections</h2>
-        <span class="panel-meta">Gross money collected this month, before client remit.</span>
       </div>
 
       <div class="seg" role="tablist">
@@ -189,40 +85,231 @@
       <div id="modeTotal" class="mode-block">
         <div class="field big">
           <label for="totalSales">Total collected · month</label>
-          <input type="number" id="totalSales" value="0" min="0" step="100" placeholder="0">
+          <div class="input-prefix"><span>$</span><input type="number" id="totalSales" value="0" min="0" step="1000" placeholder="0"></div>
+        </div>
+        <div class="chips" aria-label="Quick amounts">
+          <button type="button" class="chip" data-amount="75000">$75k</button>
+          <button type="button" class="chip" data-amount="100000">$100k</button>
+          <button type="button" class="chip" data-amount="125000">$125k</button>
+          <button type="button" class="chip" data-amount="150000">$150k</button>
+          <button type="button" class="chip" data-amount="200000">$200k</button>
         </div>
       </div>
 
       <div id="modeAvg" class="mode-block" hidden>
         <div class="field-grid">
           <div class="field">
-            <label for="closerAvg">Closer average <small>TJ closers</small></label>
-            <input type="number" id="closerAvg" value="0" min="0" step="100">
+            <label for="closerAvg">Closer average <small>per TJ closer</small></label>
+            <div class="input-prefix"><span>$</span><input type="number" id="closerAvg" value="0" min="0" step="100"></div>
           </div>
           <div class="field">
             <label for="dialerAvg">Dialer average <small>TJ dialers + overseas</small></label>
-            <input type="number" id="dialerAvg" value="0" min="0" step="100">
+            <div class="input-prefix"><span>$</span><input type="number" id="dialerAvg" value="0" min="0" step="100"></div>
           </div>
         </div>
         <p class="help">Total = (closer avg × closers) + (dialer avg × dialers)</p>
       </div>
 
-      <details class="adv">
-        <summary>Deductions &amp; commission</summary>
-        <div class="field-grid">
-          <div class="field"><label for="remitPct">Client remit %</label><input type="number" id="remitPct" value="20" min="0" max="100" step="0.5"></div>
-          <div class="field"><label for="reservePct">Merchant reserve %</label><input type="number" id="reservePct" value="5" min="0" max="100" step="0.5"></div>
-          <div class="field"><label for="feePct">Merchant fees %</label><input type="number" id="feePct" value="3" min="0" max="100" step="0.5"></div>
-          <div class="field"><label>Net revenue rate</label><div class="readonly" id="netRateDisplay">72%</div></div>
+      <h3 class="sub-head">Deductions</h3>
+      <div class="field-grid four">
+        <div class="field"><label for="remitPct">Client remit</label><div class="input-suffix"><input type="number" id="remitPct" value="20" min="0" max="100" step="0.5"><span>%</span></div></div>
+        <div class="field"><label for="reservePct">Merchant reserve</label><div class="input-suffix"><input type="number" id="reservePct" value="5" min="0" max="100" step="0.5"><span>%</span></div></div>
+        <div class="field"><label for="feePct">Merchant fees</label><div class="input-suffix"><input type="number" id="feePct" value="3" min="0" max="100" step="0.5"><span>%</span></div></div>
+        <div class="field"><label>Net revenue rate</label><div class="readonly" id="netRateDisplay">72%</div></div>
+      </div>
+    </section>
+
+    <!-- 2. WHAT IF -->
+    <section class="panel">
+      <div class="panel-head">
+        <span class="step-num">2</span>
+        <div>
+          <h2>What if we hit…</h2>
+          <p class="panel-meta">Profit at different collection levels with today's team and costs. Click a row to use it.</p>
         </div>
-        <div class="field-grid">
-          <div class="field"><label for="closerCommRate">Closer commission %</label><input type="number" id="closerCommRate" value="0" min="0" step="0.5"></div>
-          <div class="field"><label for="closerCommFloor">…on sales above</label><input type="number" id="closerCommFloor" value="0" min="0" step="100"></div>
-          <div class="field"><label for="dialerCommRate">Dialer commission %</label><input type="number" id="dialerCommRate" value="0" min="0" step="0.5"></div>
-          <div class="field"><label for="dialerCommFloor">…on sales above</label><input type="number" id="dialerCommFloor" value="0" min="0" step="100"></div>
+      </div>
+      <div class="table-wrap">
+        <table class="whatif">
+          <thead>
+            <tr><th>Collected</th><th>Avg / agent</th><th class="opt">Net revenue</th><th class="opt">Costs</th><th>Profit</th><th>Margin</th></tr>
+          </thead>
+          <tbody id="whatifBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3. TEAM -->
+    <section class="panel" id="teamPanel">
+      <div class="panel-head">
+        <span class="step-num">3</span>
+        <div>
+          <h2>Team</h2>
+          <p class="panel-meta">Roster as of <strong>Sep 28, 2026</strong> · 173.33 hrs/mo = 40 hrs × 52 wks ÷ 12</p>
         </div>
-        <p class="help">Commission is off (0%) by default — type in a rate and floor to model a plan. Dialer commission applies to TJ dialers + overseas. Break-even includes commission.</p>
-      </details>
+      </div>
+
+      <div class="team-grid">
+        <div class="team-card" data-team="tjCloser">
+          <div class="team-card-head">
+            <span class="team-name">Tijuana closers</span>
+            <span class="team-flag">MX</span>
+          </div>
+          <div class="stepper">
+            <button type="button" class="step" data-step="-1" aria-label="Remove one">−</button>
+            <input type="number" id="tjCloserCount" value="10" min="0" step="1" aria-label="Tijuana closers">
+            <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
+          </div>
+          <div class="team-rates">
+            <label>$/hr <input type="number" id="tjCloserRate" value="7.80" min="0" step="0.05"></label>
+            <label>hrs/mo <input type="number" id="tjCloserHours" value="173.33" min="0" step="any"></label>
+          </div>
+          <div class="team-foot"><span class="line-tag local">$60 line</span><span class="team-cost" id="tjCloserCost">$0</span></div>
+        </div>
+
+        <div class="team-card" data-team="tjDialer">
+          <div class="team-card-head">
+            <span class="team-name">Tijuana dialers</span>
+            <span class="team-flag">MX</span>
+          </div>
+          <div class="stepper">
+            <button type="button" class="step" data-step="-1" aria-label="Remove one">−</button>
+            <input type="number" id="tjDialerCount" value="2" min="0" step="1" aria-label="Tijuana dialers">
+            <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
+          </div>
+          <div class="team-rates">
+            <label>$/hr <input type="number" id="tjDialerRate" value="7.80" min="0" step="0.05"></label>
+            <label>hrs/mo <input type="number" id="tjDialerHours" value="173.33" min="0" step="any"></label>
+          </div>
+          <div class="team-foot"><span class="line-tag dialer">$100 dialer</span><span class="team-cost" id="tjDialerCost">$0</span></div>
+        </div>
+
+        <div class="team-card" data-team="ph4">
+          <div class="team-card-head">
+            <span class="team-name">Philippines · $4</span>
+            <span class="team-flag">PH</span>
+          </div>
+          <div class="stepper">
+            <button type="button" class="step" data-step="-1" aria-label="Remove one">−</button>
+            <input type="number" id="ph4Count" value="6" min="0" step="1" aria-label="Philippines $4 tier">
+            <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
+          </div>
+          <div class="team-rates">
+            <label>$/hr <input type="number" id="ph4Rate" value="4.00" min="0" step="0.05"></label>
+            <label>hrs/mo <input type="number" id="ph4Hours" value="173.33" min="0" step="any"></label>
+          </div>
+          <div class="team-foot"><span class="line-tag dialer">$100 dialer</span><span class="team-cost" id="ph4Cost">$0</span></div>
+        </div>
+
+        <div class="team-card" data-team="ph3">
+          <div class="team-card-head">
+            <span class="team-name">Philippines · $3</span>
+            <span class="team-flag">PH</span>
+          </div>
+          <div class="stepper">
+            <button type="button" class="step" data-step="-1" aria-label="Remove one">−</button>
+            <input type="number" id="ph3Count" value="25" min="0" step="1" aria-label="Philippines $3 tier">
+            <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
+          </div>
+          <div class="team-rates">
+            <label>$/hr <input type="number" id="ph3Rate" value="3.00" min="0" step="0.05"></label>
+            <label>hrs/mo <input type="number" id="ph3Hours" value="173.33" min="0" step="any"></label>
+          </div>
+          <div class="team-foot"><span class="line-tag dialer">$100 dialer</span><span class="team-cost" id="ph3Cost">$0</span></div>
+        </div>
+
+        <div class="team-card" data-team="eg">
+          <div class="team-card-head">
+            <span class="team-name">Egypt</span>
+            <span class="team-flag">EG</span>
+          </div>
+          <div class="stepper">
+            <button type="button" class="step" data-step="-1" aria-label="Remove one">−</button>
+            <input type="number" id="egCount" value="1" min="0" step="1" aria-label="Egypt">
+            <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
+          </div>
+          <div class="team-rates">
+            <label>$/hr <input type="number" id="egRate" value="4.00" min="0" step="0.05"></label>
+            <label>hrs/mo <input type="number" id="egHours" value="173.33" min="0" step="any"></label>
+          </div>
+          <div class="team-foot"><span class="line-tag dialer">$100 dialer</span><span class="team-cost" id="egCost">$0</span></div>
+        </div>
+
+        <div class="team-card admin" data-team="admin">
+          <div class="team-card-head">
+            <span class="team-name">Admin seats</span>
+            <span class="team-flag">HQ</span>
+          </div>
+          <div class="stepper">
+            <button type="button" class="step" data-step="-1" aria-label="Remove one">−</button>
+            <input type="number" id="adminCount" value="3" min="0" step="1" aria-label="Admin seats">
+            <button type="button" class="step" data-step="1" aria-label="Add one">+</button>
+          </div>
+          <p class="team-note">Admin pay is under Overhead. Seats here only count toward local lines.</p>
+          <div class="team-foot"><span class="line-tag local">$60 line</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. PHONE LINES -->
+    <section class="panel">
+      <div class="panel-head">
+        <span class="step-num">4</span>
+        <div>
+          <h2>Phone lines</h2>
+          <p class="panel-meta">One line per seat, filled in from the team above. Type over a count to override · <button class="link" id="relinkLines">re-link to team</button></p>
+        </div>
+      </div>
+      <div class="lines-grid">
+        <div class="line-card">
+          <div class="line-card-head"><span class="line-tag local">Local line</span><small>IP extension · TJ closers + admin</small></div>
+          <div class="field-grid">
+            <div class="field"><label for="localLineCount">Seats</label><input type="number" id="localLineCount" value="0" min="0" step="1" data-auto="true"></div>
+            <div class="field"><label for="localLineCost">$ / seat</label><div class="input-prefix"><span>$</span><input type="number" id="localLineCost" value="60" min="0" step="0.01"></div></div>
+          </div>
+          <div class="line-total" id="localLineTotal">$0</div>
+        </div>
+        <div class="line-card">
+          <div class="line-card-head"><span class="line-tag dialer">Dialer license</span><small>TJ dialers + Philippines + Egypt</small></div>
+          <div class="field-grid">
+            <div class="field"><label for="dialerLineCount">Seats</label><input type="number" id="dialerLineCount" value="0" min="0" step="1" data-auto="true"></div>
+            <div class="field"><label for="dialerLineCost">$ / seat</label><div class="input-prefix"><span>$</span><input type="number" id="dialerLineCost" value="100" min="0" step="0.01"></div></div>
+          </div>
+          <div class="line-total" id="dialerLineTotal">$0</div>
+        </div>
+      </div>
+      <p class="help"><span class="auto-dot"></span> Highlighted counts are linked to the team. Platform fees (ACE, local presence, CAD, recordings, DUNK) are under Overhead.</p>
+    </section>
+
+    <!-- 5. OVERHEAD -->
+    <section class="panel">
+      <div class="panel-head">
+        <span class="step-num">5</span>
+        <div>
+          <h2>Overhead</h2>
+          <p class="panel-meta">Fixed monthly costs. Add or remove rows as vendors change.</p>
+        </div>
+        <span class="panel-total" id="overheadTotal">$0</span>
+      </div>
+      <div class="expense-list" id="expenseList"></div>
+      <button type="button" class="btn btn-add" id="addExpenseBtn">+ Add expense</button>
+    </section>
+
+    <!-- 6. COMMISSION -->
+    <section class="panel">
+      <div class="panel-head">
+        <span class="step-num">6</span>
+        <div>
+          <h2>Commission</h2>
+          <p class="panel-meta">Off by default. Enter a rate and a floor to model a plan. Break-even includes it.</p>
+        </div>
+      </div>
+      <div class="field-grid four">
+        <div class="field"><label for="closerCommRate">Closer rate</label><div class="input-suffix"><input type="number" id="closerCommRate" value="0" min="0" step="0.5"><span>%</span></div></div>
+        <div class="field"><label for="closerCommFloor">…on sales above</label><div class="input-prefix"><span>$</span><input type="number" id="closerCommFloor" value="0" min="0" step="100"></div></div>
+        <div class="field"><label for="dialerCommRate">Dialer rate</label><div class="input-suffix"><input type="number" id="dialerCommRate" value="0" min="0" step="0.5"><span>%</span></div></div>
+        <div class="field"><label for="dialerCommFloor">…on sales above</label><div class="input-prefix"><span>$</span><input type="number" id="dialerCommFloor" value="0" min="0" step="100"></div></div>
+      </div>
+      <p class="help">Dialer rate applies to TJ dialers + overseas. In "Total collected" mode everyone is assumed to collect the same average, so use "Per-agent average" for a closer-heavy plan.</p>
     </section>
 
   </div>
@@ -245,9 +332,15 @@
       </div>
       <div class="be-row">
         <span>Collected <b id="beCollected">$0</b></span>
-        <span>Break-even <b id="breakEven">$0</b></span>
+        <span class="right">Break-even <b id="breakEven">$0</b></span>
       </div>
       <div class="be-note" id="beNote">Enter collections to see where you land.</div>
+    </div>
+
+    <div class="costmix">
+      <div class="costmix-head">Where the money goes</div>
+      <div class="costbar" id="costBar" role="img" aria-label="Monthly cost breakdown"></div>
+      <ul class="costlegend" id="costLegend"></ul>
     </div>
 
     <table class="stub">
@@ -278,7 +371,7 @@
   </aside>
 </main>
 
-<div class="toast" id="toast" hidden></div>
+<div class="toast" id="toast" role="status" hidden></div>
 <script src="script.js"></script>
 </body>
 </html>

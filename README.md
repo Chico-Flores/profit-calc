@@ -4,6 +4,10 @@ Monthly P&L, break-even, and what-if tool for Powerhouze Group. Static site — 
 
 ## What it does
 
+- **Summary strip** — monthly costs, break-even, what you keep per $1, headcount.
+- **What if we hit…** — profit at a ladder of collection levels around break-even; click a row to load it.
+- **Where the money goes** — stacked bar of payroll / phones / overhead / commission.
+
 - **Team** — headcount, $/hr and hours/month per group (TJ closers, TJ dialers, PH $4 tier, PH $3 tier, Egypt, admin seats). Payroll shows per card. Hours default to 173.33/mo (40 hrs × 52 wks ÷ 12).
 - **Phone lines** — one line per seat, auto-filled from headcount: $60 local line (IP extension) = TJ closers + admin; $100 dialer license = TJ dialers + Philippines + Egypt. Type over to override, "re-link" to go back to auto.
 - **Overhead** — editable list of fixed costs. Add / remove rows as vendors change.
@@ -39,6 +43,6 @@ break-even        = smallest gross where net revenue ≥ payroll + commission + 
 
 ```
 index.html   structure
-styles.css   PHG brand styling (Archivo + JetBrains Mono)
+styles.css   PHG brand styling (Archivo + JetBrains Mono), light + dark mode
 script.js    calculation + persistence
 ```
